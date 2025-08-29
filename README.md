@@ -2,11 +2,11 @@
 
 - [Meantonal](#meantonal)
 
-<img align="left" src="/logo.svg" width="45">
+<img align="left" src="/logo.svg" width="48">
   
 # Meantonal
 
-Meantonal is a specification for representing abstract pitch information in Western music, and a suite of tools for operating on this information. It's a small, focused library that aims to empower developers to build musical apps more easily.
+Meantonal is a specification for representing pitch information in Western music, and a suite of tools for operating on this information. It's a small, focused library that aims to empower developers to build musical apps more easily.
 
 Meantonal is:
 - **Flexible with I/O**: easily ingest and translate between Scientific Pitch Notation, Helmholtz notation, ABC and Lilypond. Extract MIDI values at any time.
