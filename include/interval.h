@@ -20,4 +20,6 @@ static inline Interval interval_between(Note p, Note q) {
  * */
 static inline int stepspan(Interval m) { return m.w + m.h; }
 
+int interval_from_spn(char *p_str, char *q_str, Interval *out);
+
 #endif
