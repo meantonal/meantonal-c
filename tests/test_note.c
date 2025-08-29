@@ -68,4 +68,5 @@ void test_note_functions(void) {
     RUN_TESTS(test_note_letter);
     RUN_TESTS(test_note_accidental);
     RUN_TESTS(test_midi_value);
+    RUN_TESTS(test_note_to_standard);
 }
