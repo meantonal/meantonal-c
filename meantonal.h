@@ -1,5 +1,5 @@
-#include <stdbool.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // -----------------------------------------
 // HEADER DECLARATIONS ---------------------
@@ -7,6 +7,7 @@
 
 #ifndef MEANTONAL_HEADER
 #define MEANTONAL_HEADER
+
 
 /**
  * The most fundamental pitch representation in Meantonal.
@@ -72,8 +73,12 @@ typedef struct {
     int h;
 } NoteAxis;
 
+
+
 extern const Map1d ET7, ET12, ET19, ET31, ET50, ET55;
 extern const Map2d WICKI, GENERATORS;
+
+
 
 /**
  * @brief
@@ -190,6 +195,8 @@ static inline Note note_invert(Note p, NoteAxis a) {
     return (Note){.w = a.w - p.w, .h = a.h - p.h};
 }
 
+
+
 /**
  * @brief
  * Create an interval from two Note vectors.
@@ -291,6 +298,7 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 #ifdef MEANTONAL
 #undef MEANTONAL
+
 
 const Map1d ET7 = {1, 1};
 const Map1d ET12 = {2, 1};
@@ -443,5 +451,5 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
     out->h = q.h - p.h;
     return 0;
 }
-
 #endif // MEANTONAL
+
