@@ -70,6 +70,25 @@ static inline StandardNote note_to_standard(Note p) {
 }
 
 /**
+ * Maps a Note vector to a MappedVec type using a 2x2 matrix.
+ * MappedVec is a special type to ensure it is not accidentally operated with
+ * as if it is a regular Note.
+ */
+static inline MappedVec note_map_2d(Note p, Map2d T) {
+    return (MappedVec){.x = T.m00 * p.w + T.m01 * p.h,
+                       .y = T.m10 * p.w + T.m11 * p.h};
+}
+
+/**
+ * Maps a note to an integer using a 1x2 matrix.
+ * Most built-in functions that take Notes and return integers perform
+ * this operation somewhere along the way.
+ */
+static inline int note_map_1d(Note p, Map1d T) {
+    return T.m0 * p.w + T.m1 * p.h;
+}
+
+/**
  * @brief
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
@@ -83,5 +102,21 @@ Note standard_to_note(StandardNote p);
  * 0 means nothing went wrong.
  */
 int note_from_spn(const char *s, Note *out);
+
+static inline int note_create_axis(char *p_str, char *q_str, NoteAxis *out) {
+    Note p, q;
+
+    if (note_from_spn(p_str, &p))
+        return 1;
+    if (note_from_spn(q_str, &q))
+        return 1;
+
+    out->w = p.w + q.w;
+    out->h = p.h + q.h;
+}
+
+static inline Note note_invert(Note p, NoteAxis a) {
+    return (Note){.w = a.w - p.w, .h = a.h - p.h};
+}
 
 #endif
