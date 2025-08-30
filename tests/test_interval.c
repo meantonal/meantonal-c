@@ -5,11 +5,10 @@
 
 void assert_int_between(char *p_str, char *q_str, char *m_str) {
     Note p, q;
-    Interval m;
-    Interval n;
-    parse_spn(p_str, &p);
-    parse_spn(q_str, &q);
-    parse_interval(m_str, &m);
+    Interval m, n;
+    note_from_spn(p_str, &p);
+    note_from_spn(q_str, &q);
+    interval_from_name(m_str, &m);
     n = interval_between(p, q);
     ASSERT_EQ(m.w, n.w);
     ASSERT_EQ(m.h, n.h);

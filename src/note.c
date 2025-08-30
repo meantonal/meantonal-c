@@ -1,11 +1,18 @@
 #include "../include/note.h"
 #include <stdlib.h>
 
-const Note letters[7] = {
+static const Note letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
 
-int parse_spn(const char *s, Note *out_note) {
+Note standard_to_note(StandardNote p) {
+    return (Note){
+        .w = letters[p.letter].w + p.octave + p.accidental,
+        .h = letters[p.letter].h + p.octave - p.accidental,
+    };
+}
+
+int note_from_spn(const char *s, Note *out) {
     const char *p = s;
 
     // 1. letter name
@@ -17,8 +24,8 @@ int parse_spn(const char *s, Note *out_note) {
     } else {
         return 1; // invalid
     }
-    out_note->w = letters[letter].w;
-    out_note->h = letters[letter].h;
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
 
     // 2. accidental
     int acc = 0;
@@ -39,8 +46,8 @@ int parse_spn(const char *s, Note *out_note) {
         }
         p++;
     }
-    out_note->w += acc;
-    out_note->h -= acc;
+    out->w += acc;
+    out->h -= acc;
 
     // 3. octave (can be negative, multi-digit)
     char *end;
@@ -48,8 +55,8 @@ int parse_spn(const char *s, Note *out_note) {
     if (end == p) {
         return 1; // no digits found
     }
-    out_note->w += (int)oct * 5;
-    out_note->h += (int)oct * 2;
+    out->w += (int)oct * 5;
+    out->h += (int)oct * 2;
 
     return 0;
 }

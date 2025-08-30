@@ -1,12 +1,12 @@
 #include "../include/interval.h"
 #include "../include/note.h"
-#include <stdbool.h>
+#include <stdlib.h>
 
-const Interval major_ints[7] = {
+static const Interval major_ints[7] = {
     {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1}, {4, 1}, {5, 1},
 };
 
-int parse_interval(const char *s, Interval *out) {
+int interval_from_name(const char *s, Interval *out) {
     const char *p = s;
 
     // 1. sign
@@ -75,9 +75,9 @@ int parse_interval(const char *s, Interval *out) {
 
 int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
     Note p, q;
-    if (parse_spn(p_str, &p))
+    if (note_from_spn(p_str, &p))
         return 1;
-    if (parse_spn(q_str, &q))
+    if (note_from_spn(q_str, &q))
         return 1;
     out->w = q.w - p.w;
     out->h = q.h - p.h;
