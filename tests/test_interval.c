@@ -23,6 +23,37 @@ void test_interval_between(void) {
     assert_int_between("Eb5", "B4", "-d4");
 }
 
+void test_interval_chroma(void) {
+    Interval n;
+    interval_from_name("P8", &n);
+    ASSERT_EQ(interval_chroma(n), 0);
+    interval_from_name("A6", &n);
+    ASSERT_EQ(interval_chroma(n), 10);
+    interval_from_name("m3", &n);
+    ASSERT_EQ(interval_chroma(n), -3);
+}
+
+void test_intervals_equal(void) {
+    Interval m = {3, 1};
+    Interval n;
+    interval_from_name("P5", &n);
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("M3", &n);
+    ASSERT_EQ(intervals_equal(m, n), false);
+}
+
+void test_intervals_enharmonic(void) {
+    Interval m, n;
+    interval_from_name("A6", &m);
+    interval_from_name("m7", &n);
+    ASSERT_EQ(intervals_enharmonic(m, n, 12), true);
+    ASSERT_EQ(intervals_enharmonic(m, n, 31), false);
+    interval_from_name("dddd10", &m);
+    interval_from_name("P8", &n);
+    ASSERT_EQ(intervals_enharmonic(m, n, 31), true);
+    ASSERT_EQ(intervals_enharmonic(m, n, 12), false);
+}
+
 void test_stepspan(void) {
     Interval m;
     interval_from_spn("C4", "E4", &m);
@@ -33,7 +64,69 @@ void test_stepspan(void) {
     ASSERT_EQ(stepspan(m), -3);
 }
 
+void assert_int_quality(char *m_str, int expected) {
+    Interval m;
+    interval_from_name(m_str, &m);
+    printf("%s: (%d, %d); %d -> %d\n", m_str, m.w, m.h, interval_chroma(m),
+           interval_quality(m));
+    ASSERT_EQ(interval_quality(m), expected);
+}
+
+void test_interval_quality(void) {
+    assert_int_quality("P1", 0);
+    assert_int_quality("P4", 0);
+    assert_int_quality("P5", 0);
+
+    assert_int_quality("M2", 1);
+    assert_int_quality("M3", 1);
+    assert_int_quality("M6", 1);
+    assert_int_quality("M7", 1);
+    assert_int_quality("m2", -1);
+    assert_int_quality("m3", -1);
+    assert_int_quality("m6", -1);
+    assert_int_quality("m7", -1);
+
+    assert_int_quality("A4", 2);
+    assert_int_quality("A7", 2);
+    assert_int_quality("d4", -2);
+    assert_int_quality("d7", -2);
+
+    assert_int_quality("AAAA2", 5);
+    assert_int_quality("dddd2", -5);
+}
+
+void test_transpose_real(void) {
+    Note p, q;
+    Interval m;
+    note_from_spn("C4", &p);
+    note_from_spn("E4", &q);
+    interval_from_name("M3", &m);
+    p = transpose_real(p, m);
+    ASSERT_EQ(notes_equal(p, q), true);
+}
+
+void test_interval_from_name(void) {
+    Interval m;
+    interval_from_name("A6", &m);
+    Interval n = {5, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+}
+
+void test_interval_from_spn(void) {
+    Interval m;
+    interval_from_spn("B3", "Ab4", &m);
+    Interval n = {3, 3};
+    ASSERT_EQ(intervals_equal(m, n), true);
+}
+
 void test_interval_functions(void) {
     RUN_TESTS(test_interval_between);
+    RUN_TESTS(test_interval_chroma);
+    RUN_TESTS(test_intervals_equal);
+    RUN_TESTS(test_intervals_enharmonic);
     RUN_TESTS(test_stepspan);
+    RUN_TESTS(test_interval_quality);
+    RUN_TESTS(test_transpose_real);
+    RUN_TESTS(test_interval_from_name);
+    RUN_TESTS(test_interval_from_spn);
 }

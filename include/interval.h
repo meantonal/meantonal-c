@@ -38,7 +38,8 @@ static inline bool intervals_equal(Interval m, Interval n) {
  * The EDO tuning system to compare enharmonicity in.
  */
 static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
-    return interval_chroma(m) % edo == interval_chroma(n) % edo;
+    return (interval_chroma(m) % edo + edo) % edo ==
+           (interval_chroma(n) % edo + edo) % edo;
 }
 
 /**
@@ -59,9 +60,9 @@ static inline int interval_quality(Interval m) {
     if (chroma == 0)
         return 0;
     if (chroma > 0 && chroma <= 5)
-        return (chroma + 6) / 7;
-    if (chroma < 0 && chroma >= 5)
-        return (chroma - 6) / 7;
+        return (chroma + 5) / 7;
+    if (chroma < 0 && chroma >= -5)
+        return (chroma - 5) / 7;
     if (chroma > 5)
         return (chroma + 8) / 7;
     return (chroma - 8) / 7;

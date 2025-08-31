@@ -3,19 +3,19 @@
 #include "test_framework.h"
 
 void test_note_chroma(void) {
-    Note n;
-    note_from_spn("C4", &n);
-    ASSERT_EQ(note_chroma(n), 0);
-    note_from_spn("C5", &n);
-    ASSERT_EQ(note_chroma(n), 0);
-    note_from_spn("G4", &n);
-    ASSERT_EQ(note_chroma(n), 1);
-    note_from_spn("F6", &n);
-    ASSERT_EQ(note_chroma(n), -1);
-    note_from_spn("A#7", &n);
-    ASSERT_EQ(note_chroma(n), 10);
-    note_from_spn("Gb-1", &n);
-    ASSERT_EQ(note_chroma(n), -6);
+    Note p;
+    note_from_spn("C4", &p);
+    ASSERT_EQ(note_chroma(p), 0);
+    note_from_spn("C5", &p);
+    ASSERT_EQ(note_chroma(p), 0);
+    note_from_spn("G4", &p);
+    ASSERT_EQ(note_chroma(p), 1);
+    note_from_spn("F6", &p);
+    ASSERT_EQ(note_chroma(p), -1);
+    note_from_spn("A#7", &p);
+    ASSERT_EQ(note_chroma(p), 10);
+    note_from_spn("Gb-1", &p);
+    ASSERT_EQ(note_chroma(p), -6);
 }
 
 void test_notes_equal(void) {
@@ -40,49 +40,49 @@ void test_notes_enharmonic(void) {
 }
 
 void test_note_midi(void) {
-    Note n;
-    note_from_spn("C4", &n);
-    ASSERT_EQ(note_midi(n), 60);
-    note_from_spn("E4", &n);
-    ASSERT_EQ(note_midi(n), 64);
-    note_from_spn("F4", &n);
-    ASSERT_EQ(note_midi(n), 65);
-    note_from_spn("F#4", &n);
-    ASSERT_EQ(note_midi(n), 66);
-    note_from_spn("Fx4", &n);
-    ASSERT_EQ(note_midi(n), 67);
-    note_from_spn("C7", &n);
-    ASSERT_EQ(note_midi(n), 96);
+    Note p;
+    note_from_spn("C4", &p);
+    ASSERT_EQ(note_midi(p), 60);
+    note_from_spn("E4", &p);
+    ASSERT_EQ(note_midi(p), 64);
+    note_from_spn("F4", &p);
+    ASSERT_EQ(note_midi(p), 65);
+    note_from_spn("F#4", &p);
+    ASSERT_EQ(note_midi(p), 66);
+    note_from_spn("Fx4", &p);
+    ASSERT_EQ(note_midi(p), 67);
+    note_from_spn("C7", &p);
+    ASSERT_EQ(note_midi(p), 96);
 }
 
 void test_note_letter(void) {
-    Note n;
-    note_from_spn("C4", &n);
-    ASSERT_EQ(note_letter(n), 2);
-    note_from_spn("E4", &n);
-    ASSERT_EQ(note_letter(n), 4);
-    note_from_spn("F4", &n);
-    ASSERT_EQ(note_letter(n), 5);
-    note_from_spn("F#4", &n);
-    ASSERT_EQ(note_letter(n), 5);
-    note_from_spn("F####4", &n);
-    ASSERT_EQ(note_letter(n), 5);
-    note_from_spn("C7", &n);
-    ASSERT_EQ(note_letter(n), 2);
+    Note p;
+    note_from_spn("C4", &p);
+    ASSERT_EQ(note_letter(p), 2);
+    note_from_spn("E4", &p);
+    ASSERT_EQ(note_letter(p), 4);
+    note_from_spn("F4", &p);
+    ASSERT_EQ(note_letter(p), 5);
+    note_from_spn("F#4", &p);
+    ASSERT_EQ(note_letter(p), 5);
+    note_from_spn("F####4", &p);
+    ASSERT_EQ(note_letter(p), 5);
+    note_from_spn("C7", &p);
+    ASSERT_EQ(note_letter(p), 2);
 }
 
 void test_note_accidental(void) {
-    Note n;
-    note_from_spn("C4", &n);
-    ASSERT_EQ(note_accidental(n), 0);
-    note_from_spn("C#1", &n);
-    ASSERT_EQ(note_accidental(n), 1);
-    note_from_spn("Cb2", &n);
-    ASSERT_EQ(note_accidental(n), -1);
-    note_from_spn("C###3", &n);
-    ASSERT_EQ(note_accidental(n), 3);
-    note_from_spn("Cbbbb5", &n);
-    ASSERT_EQ(note_accidental(n), -4);
+    Note p;
+    note_from_spn("C4", &p);
+    ASSERT_EQ(note_accidental(p), 0);
+    note_from_spn("C#1", &p);
+    ASSERT_EQ(note_accidental(p), 1);
+    note_from_spn("Cb2", &p);
+    ASSERT_EQ(note_accidental(p), -1);
+    note_from_spn("C###3", &p);
+    ASSERT_EQ(note_accidental(p), 3);
+    note_from_spn("Cbbbb5", &p);
+    ASSERT_EQ(note_accidental(p), -4);
 }
 
 void test_note_octave(void) {

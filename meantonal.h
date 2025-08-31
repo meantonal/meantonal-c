@@ -85,7 +85,7 @@ extern const Map2d WICKI, GENERATORS;
  * The number of perfect fifths separating a Note from C.
  * Abstracts octave information away.
  */
-static inline int note_chroma(Note p) { return (2 * p.w) - (5 * p.h); }
+static inline int note_chroma(Note p) { return 2 * p.w - 5 * p.h; }
 
 /**
  * Check whether two notes are the same.
@@ -102,7 +102,8 @@ static inline bool notes_equal(Note p, Note q) {
  * The EDO tuning system to compare enharmonicity in.
  */
 static inline bool notes_enharmonic(Note m, Note n, int edo) {
-    return note_chroma(m) % edo == note_chroma(n) % edo;
+    return (note_chroma(m) % edo + edo) % edo ==
+           (note_chroma(n) % edo + edo) % edo;
 }
 
 /**
@@ -133,7 +134,9 @@ static inline int note_accidental(Note p) {
  * @brief
  * Returns the SPN octave number of a Note (C4 is middle C)
  */
-static inline int note_octave(Note p) { return (p.w + p.h) / 7 - 1; }
+static inline int note_octave(Note p) {
+    return p.w + p.h < 0 ? (p.w + p.h) / 7 - 2 : (p.w + p.h) / 7 - 1;
+}
 
 /**
  * @brief
@@ -189,6 +192,7 @@ static inline int note_create_axis(char *p_str, char *q_str, NoteAxis *out) {
 
     out->w = p.w + q.w;
     out->h = p.h + q.h;
+    return 0;
 }
 
 static inline Note note_invert(Note p, NoteAxis a) {
@@ -231,7 +235,8 @@ static inline bool intervals_equal(Interval m, Interval n) {
  * The EDO tuning system to compare enharmonicity in.
  */
 static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
-    return interval_chroma(m) % edo == interval_chroma(n) % edo;
+    return (interval_chroma(m) % edo + edo) % edo ==
+           (interval_chroma(n) % edo + edo) % edo;
 }
 
 /**
@@ -252,9 +257,9 @@ static inline int interval_quality(Interval m) {
     if (chroma == 0)
         return 0;
     if (chroma > 0 && chroma <= 5)
-        return (chroma + 6) / 7;
-    if (chroma < 0 && chroma >= 5)
-        return (chroma - 6) / 7;
+        return (chroma + 5) / 7;
+    if (chroma < 0 && chroma >= -5)
+        return (chroma - 5) / 7;
     if (chroma > 5)
         return (chroma + 8) / 7;
     return (chroma - 8) / 7;
@@ -316,8 +321,8 @@ static const Note letters[7] = {
 
 Note standard_to_note(StandardNote p) {
     return (Note){
-        .w = letters[p.letter].w + p.octave + p.accidental,
-        .h = letters[p.letter].h + p.octave - p.accidental,
+        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
+        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
 }
 
@@ -375,20 +380,18 @@ static const Interval major_ints[7] = {
 };
 
 int interval_from_name(const char *s, Interval *out) {
-    const char *p = s;
-
     // 1. sign
     bool negative = false;
-    if (*p == '-') {
+    if (*s == '-') {
         negative = true;
-        p++;
+        s++;
     }
 
     // 2. quality (unadjusted)
     int quality = 0;
-    while (*p == 'P' || *p == 'p' || *p == 'M' || *p == 'm' || *p == 'b' ||
-           *p == '#' || *p == 'A' || *p == 'a' || *p == 'D' || *p == 'd') {
-        switch (*p) {
+    while (*s == 'P' || *s == 'p' || *s == 'M' || *s == 'm' || *s == 'b' ||
+           *s == '#' || *s == 'A' || *s == 'a' || *s == 'D' || *s == 'd') {
+        switch (*s) {
         case 'A':
         case 'a':
         case '#':
@@ -406,13 +409,13 @@ int interval_from_name(const char *s, Interval *out) {
                 quality--;
             break;
         }
-        p++;
+        s++;
     }
 
     // 3. generic size / octave
     char *end;
-    long generic = strtol(p, &end, 10) - 1;
-    if (end == p) {
+    long generic = strtol(s, &end, 10) - 1;
+    if (end == s) {
         return 1; // no digits found
     }
     int simple = generic % 7;

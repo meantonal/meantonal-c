@@ -7,20 +7,18 @@ static const Interval major_ints[7] = {
 };
 
 int interval_from_name(const char *s, Interval *out) {
-    const char *p = s;
-
     // 1. sign
     bool negative = false;
-    if (*p == '-') {
+    if (*s == '-') {
         negative = true;
-        p++;
+        s++;
     }
 
     // 2. quality (unadjusted)
     int quality = 0;
-    while (*p == 'P' || *p == 'p' || *p == 'M' || *p == 'm' || *p == 'b' ||
-           *p == '#' || *p == 'A' || *p == 'a' || *p == 'D' || *p == 'd') {
-        switch (*p) {
+    while (*s == 'P' || *s == 'p' || *s == 'M' || *s == 'm' || *s == 'b' ||
+           *s == '#' || *s == 'A' || *s == 'a' || *s == 'D' || *s == 'd') {
+        switch (*s) {
         case 'A':
         case 'a':
         case '#':
@@ -38,13 +36,13 @@ int interval_from_name(const char *s, Interval *out) {
                 quality--;
             break;
         }
-        p++;
+        s++;
     }
 
     // 3. generic size / octave
     char *end;
-    long generic = strtol(p, &end, 10) - 1;
-    if (end == p) {
+    long generic = strtol(s, &end, 10) - 1;
+    if (end == s) {
         return 1; // no digits found
     }
     int simple = generic % 7;
