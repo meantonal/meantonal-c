@@ -5,7 +5,7 @@ static const Note letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
 
-Note standard_to_note(StandardNote p) {
+Note note_from_standard(StandardNote p) {
     return (Note){
         .w = letters[p.letter].w + 5 * p.octave + p.accidental,
         .h = letters[p.letter].h + 2 * p.octave - p.accidental,

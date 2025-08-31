@@ -76,7 +76,7 @@ static inline StandardNote note_to_standard(Note p) {
  * @brief
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
-Note standard_to_note(StandardNote p);
+Note note_from_standard(StandardNote p);
 
 /**
  * Maps a Note vector to a MappedVec type using a 2x2 matrix.
@@ -105,6 +105,16 @@ static inline int note_map_1d(Note p, Map1d T) {
  * 0 means nothing went wrong.
  */
 int note_from_spn(const char *s, Note *out);
+
+/**
+ * @brief
+ * Returns a new Note shifted by the given interval.
+ * @return
+ * Note (p + m)
+ */
+static inline Note transpose_real(Note p, Interval m) {
+    return (Note){.w = p.w + m.w, .h = p.h + m.h};
+}
 
 static inline MirrorAxis axis_create(Note p, Note q) {
     return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};

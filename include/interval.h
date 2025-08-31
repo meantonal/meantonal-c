@@ -69,16 +69,6 @@ static inline int interval_quality(Interval m) {
 }
 
 /**
- * @brief
- * Returns a new Note shifted by the given interval.
- * @return
- * Note (p + m)
- */
-static inline Note transpose_real(Note p, Interval m) {
-    return (Note){.w = p.w + m.w, .h = p.h + m.h};
-}
-
-/**
  * Parses an interval name like "P5" to generate an Interval.
  * @param out
  * Pointer to an Interval to store the resulting vector.

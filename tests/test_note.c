@@ -124,9 +124,9 @@ void test_note_map_1d(void) {
     ASSERT_EQ(note_map_1d(p, (Map1d){5, 5}), 40);
 }
 
-void test_standard_to_note(void) {
+void test_note_from_standard(void) {
     StandardNote s = {.letter = 2, .accidental = 1, .octave = 4};
-    Note p = standard_to_note(s);
+    Note p = note_from_standard(s);
     ASSERT_EQ(p.w, 21);
     ASSERT_EQ(p.h, 7);
 }
@@ -182,7 +182,7 @@ void test_note_functions(void) {
     RUN_TESTS(test_note_to_standard);
     RUN_TESTS(test_note_map_2d);
     RUN_TESTS(test_note_map_1d);
-    RUN_TESTS(test_standard_to_note);
+    RUN_TESTS(test_note_from_standard);
     RUN_TESTS(test_note_from_spn);
     RUN_TESTS(test_note_invert);
 }
