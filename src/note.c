@@ -7,8 +7,8 @@ static const Note letters[7] = {
 
 Note standard_to_note(StandardNote p) {
     return (Note){
-        .w = letters[p.letter].w + p.octave + p.accidental,
-        .h = letters[p.letter].h + p.octave - p.accidental,
+        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
+        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
 }
 

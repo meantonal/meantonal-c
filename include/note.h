@@ -9,7 +9,7 @@
  * The number of perfect fifths separating a Note from C.
  * Abstracts octave information away.
  */
-static inline int note_chroma(Note p) { return (2 * p.w) - (5 * p.h); }
+static inline int note_chroma(Note p) { return 2 * p.w - 5 * p.h; }
 
 /**
  * Check whether two notes are the same.
@@ -26,7 +26,8 @@ static inline bool notes_equal(Note p, Note q) {
  * The EDO tuning system to compare enharmonicity in.
  */
 static inline bool notes_enharmonic(Note m, Note n, int edo) {
-    return note_chroma(m) % edo == note_chroma(n) % edo;
+    return (note_chroma(m) % edo + edo) % edo ==
+           (note_chroma(n) % edo + edo) % edo;
 }
 
 /**
@@ -57,7 +58,9 @@ static inline int note_accidental(Note p) {
  * @brief
  * Returns the SPN octave number of a Note (C4 is middle C)
  */
-static inline int note_octave(Note p) { return (p.w + p.h) / 7 - 1; }
+static inline int note_octave(Note p) {
+    return p.w + p.h < 0 ? (p.w + p.h) / 7 - 2 : (p.w + p.h) / 7 - 1;
+}
 
 /**
  * @brief
@@ -113,6 +116,7 @@ static inline int note_create_axis(char *p_str, char *q_str, NoteAxis *out) {
 
     out->w = p.w + q.w;
     out->h = p.h + q.h;
+    return 0;
 }
 
 static inline Note note_invert(Note p, NoteAxis a) {
