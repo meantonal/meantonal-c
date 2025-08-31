@@ -110,11 +110,11 @@ void test_note_to_standard(void) {
 
 void test_note_map_2d(void) {
     Note p = {1, 0};
-    MappedVec v = note_map_2d(p, WICKI);
+    MappedVec v = note_map_2d(p, WICKI_TO);
     ASSERT_EQ(v.x, 1);
     ASSERT_EQ(v.y, 0);
     p = (Note){3, 1};
-    v = note_map_2d(p, WICKI);
+    v = note_map_2d(p, WICKI_TO);
     ASSERT_EQ(v.x, 0);
     ASSERT_EQ(v.y, 1);
 }
@@ -155,7 +155,7 @@ void test_note_from_spn(void) {
 
 void test_note_invert(void) {
     MirrorAxis a;
-    axis_create("C4", "G4", &a);
+    axis_from_spn("C4", "G4", &a);
     Note p, q;
     note_from_spn("D4", &p);
     p = note_invert(p, a);
