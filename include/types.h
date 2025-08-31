@@ -40,7 +40,7 @@ typedef struct {
 /**
  * The Map2d represents a 2x2 matrix to map from one 2d vector representation to
  * another. Useful for changing coordinate basis for rendering alternative
- * isomorphic keyboard layou
+ * isomorphic keyboard layouts.
  */
 typedef struct {
     int m00, m01;
@@ -63,6 +63,6 @@ typedef struct {
 typedef struct {
     int w;
     int h;
-} NoteAxis;
+} MirrorAxis;
 
 #endif

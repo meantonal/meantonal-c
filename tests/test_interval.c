@@ -67,8 +67,6 @@ void test_stepspan(void) {
 void assert_int_quality(char *m_str, int expected) {
     Interval m;
     interval_from_name(m_str, &m);
-    printf("%s: (%d, %d); %d -> %d\n", m_str, m.w, m.h, interval_chroma(m),
-           interval_quality(m));
     ASSERT_EQ(interval_quality(m), expected);
 }
 

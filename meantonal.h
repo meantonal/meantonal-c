@@ -48,7 +48,7 @@ typedef struct {
 /**
  * The Map2d represents a 2x2 matrix to map from one 2d vector representation to
  * another. Useful for changing coordinate basis for rendering alternative
- * isomorphic keyboard layou
+ * isomorphic keyboard layouts.
  */
 typedef struct {
     int m00, m01;
@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {
     int w;
     int h;
-} NoteAxis;
+} MirrorAxis;
 
 
 
@@ -149,6 +149,12 @@ static inline StandardNote note_to_standard(Note p) {
 }
 
 /**
+ * @brief
+ * Converts from (letter, accidental, octave) format to (whole, half)
+ */
+Note standard_to_note(StandardNote p);
+
+/**
  * Maps a Note vector to a MappedVec type using a 2x2 matrix.
  * MappedVec is a special type to ensure it is not accidentally operated with
  * as if it is a regular Note.
@@ -168,12 +174,6 @@ static inline int note_map_1d(Note p, Map1d T) {
 }
 
 /**
- * @brief
- * Converts from (letter, accidental, octave) format to (whole, half)
- */
-Note standard_to_note(StandardNote p);
-
-/**
  * Parses Scientific Pitch Notation to generate a note.
  * @param out
  * Pointer to a Note to store the parsed vector.
@@ -182,7 +182,7 @@ Note standard_to_note(StandardNote p);
  */
 int note_from_spn(const char *s, Note *out);
 
-static inline int note_create_axis(char *p_str, char *q_str, NoteAxis *out) {
+static inline int axis_create(char *p_str, char *q_str, MirrorAxis *out) {
     Note p, q;
 
     if (note_from_spn(p_str, &p))
@@ -195,7 +195,7 @@ static inline int note_create_axis(char *p_str, char *q_str, NoteAxis *out) {
     return 0;
 }
 
-static inline Note note_invert(Note p, NoteAxis a) {
+static inline Note note_invert(Note p, MirrorAxis a) {
     return (Note){.w = a.w - p.w, .h = a.h - p.h};
 }
 

@@ -154,8 +154,8 @@ void test_note_from_spn(void) {
 }
 
 void test_note_invert(void) {
-    NoteAxis a;
-    note_create_axis("C4", "G4", &a);
+    MirrorAxis a;
+    axis_create("C4", "G4", &a);
     Note p, q;
     note_from_spn("D4", &p);
     p = note_invert(p, a);
