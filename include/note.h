@@ -106,7 +106,11 @@ static inline int note_map_1d(Note p, Map1d T) {
  */
 int note_from_spn(const char *s, Note *out);
 
-static inline int axis_create(char *p_str, char *q_str, MirrorAxis *out) {
+static inline MirrorAxis axis_create(Note p, Note q) {
+    return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
+}
+
+static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
     Note p, q;
 
     if (note_from_spn(p_str, &p))
