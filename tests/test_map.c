@@ -18,7 +18,7 @@ void test_map_to_1d(void) {
     ASSERT_EQ(map_to_1d(v, (Map1d){5, 5}), 40);
 }
 
-void test_pitch_functions(void) {
+void test_map_functions(void) {
     RUN_TESTS(test_map_to_2d);
     RUN_TESTS(test_map_to_1d);
 }
