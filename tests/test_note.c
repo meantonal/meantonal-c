@@ -1,4 +1,3 @@
-#include "../include/constants.h"
 #include "../include/pitch.h"
 #include "test_framework.h"
 
@@ -108,22 +107,6 @@ void test_pitch_to_standard(void) {
     ASSERT_EQ(s.octave, 4);
 }
 
-void test_pitch_map_2d(void) {
-    Pitch p = {1, 0};
-    MappedVec v = pitch_map_2d(p, WICKI_TO);
-    ASSERT_EQ(v.x, 1);
-    ASSERT_EQ(v.y, 0);
-    p = (Pitch){3, 1};
-    v = pitch_map_2d(p, WICKI_TO);
-    ASSERT_EQ(v.x, 0);
-    ASSERT_EQ(v.y, 1);
-}
-
-void test_pitch_map_1d(void) {
-    Pitch p = {5, 3};
-    ASSERT_EQ(pitch_map_1d(p, (Map1d){5, 5}), 40);
-}
-
 void test_pitch_from_standard(void) {
     StandardPitch s = {.letter = 2, .accidental = 1, .octave = 4};
     Pitch p = pitch_from_standard(s);
@@ -180,8 +163,6 @@ void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_accidental);
     RUN_TESTS(test_pitch_octave);
     RUN_TESTS(test_pitch_to_standard);
-    RUN_TESTS(test_pitch_map_2d);
-    RUN_TESTS(test_pitch_map_1d);
     RUN_TESTS(test_pitch_from_standard);
     RUN_TESTS(test_pitch_from_spn);
     RUN_TESTS(test_pitch_invert);

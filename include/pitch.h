@@ -82,24 +82,23 @@ static inline Pitch transpose_real(Pitch p, Interval m) {
 }
 
 /**
- * Maps a pitch to an integer using a 1x2 matrix.
- * Most built-in functions that take Pitches and return integers perform
- * this operation somewhere along the way.
+ * @brief
+ * Creates a MirrorAxis about which to invert Pitch vectors from two input
+ * Pitches that will map to each other.
  */
-static inline int pitch_map_1d(Pitch p, Map1d T) {
-    return T.m0 * p.w + T.m1 * p.h;
+static inline MirrorAxis axis_create(Pitch p, Pitch q) {
+    return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
 }
 
 /**
- * Maps a Pitch vector to a MappedVec type using a 2x2 matrix.
- * MappedVec is a special type to ensure it is not accidentally operated with
- * as if it is a regular Pitch.
+ * @brief
+ * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
+ * strings representing Pitches that will map to each other.
+ * @param out
+ * Pointer to a MirrorAxis to store the resulting axis.
+ * @return
+ * 0 means nothing went wrong.
  */
-static inline MappedVec pitch_map_2d(Pitch p, Map2d T) {
-    return (MappedVec){.x = T.m00 * p.w + T.m01 * p.h,
-                       .y = T.m10 * p.w + T.m11 * p.h};
-}
-
 static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
     Pitch p, q;
 
@@ -113,6 +112,10 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
     return 0;
 }
 
+/**
+ * @brief
+ * Inverts a Pitch about a given MirrorAxis
+ */
 static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
     return (Pitch){.w = a.w - p.w, .h = a.h - p.h};
 }
@@ -132,8 +135,5 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
 Pitch pitch_from_standard(StandardPitch p);
-static inline MirrorAxis axis_create(Pitch p, Pitch q) {
-    return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
-}
 
 #endif

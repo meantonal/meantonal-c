@@ -58,14 +58,12 @@ typedef struct {
 } Map2d;
 
 /**
- * This type is to distinguish vectors after applying 2d maps (change of
- * basis), so they are not accidentally used as regular Pitch or Interval
- * vectors.
+ * This type is reserved for operations using Map2d matrices.
  */
 typedef struct {
     int x;
     int y;
-} MappedVec;
+} MapVec;
 
 /**
  * This type is used with functions that invert Pitches about a fixed point.
