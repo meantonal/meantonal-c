@@ -320,6 +320,15 @@ static inline int interval_quality(Interval m) {
     return (chroma - 8) / 7;
 }
 
+/**
+ * @brief
+ * Returns the passed in interval with its values negated.
+ * An ascending major 3rd becomes a descending major 3rd.
+ */
+static inline Interval interval_negate(Interval m) {
+    return (Interval){.w = -m.w, .h = -m.h};
+}
+
 
 int key_from_str(char *s, enum Mode mode, Key *out);
 #endif // MEANTONAL_HEADER
