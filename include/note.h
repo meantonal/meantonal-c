@@ -5,36 +5,20 @@
 #include <stdbool.h>
 
 /**
+ * Parses Scientific Pitch Notation to generate a note.
+ * @param out
+ * Pointer to a Note to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int note_from_spn(const char *s, Note *out);
+
+/**
  * @brief
  * The number of perfect fifths separating a Note from C.
  * Abstracts octave information away.
  */
 static inline int note_chroma(Note p) { return 2 * p.w - 5 * p.h; }
-
-/**
- * Check whether two notes are the same.
- * Enharmonic notes are not considered the same, use note_enharmonic().
- */
-static inline bool notes_equal(Note p, Note q) {
-    return (p.w == q.w && p.h == q.h);
-}
-
-/**
- * Check whether two Notes are enharmonic in a given EDO mapping.
- * If you're unsure what the last parameter means, use 12.
- * @param edo
- * The EDO tuning system to compare enharmonicity in.
- */
-static inline bool notes_enharmonic(Note m, Note n, int edo) {
-    return (note_chroma(m) % edo + edo) % edo ==
-           (note_chroma(n) % edo + edo) % edo;
-}
-
-/**
- * @brief
- * Returns the standard MIDI value for a given Note.
- */
-static inline int note_midi(Note p) { return 2 * p.w + p.h; }
 
 /**
  * @brief
@@ -64,28 +48,37 @@ static inline int note_octave(Note p) {
 
 /**
  * @brief
- * Converts from (whole, half) format to (letter, accidental, octave)
+ * Returns the standard MIDI value for a given Note.
  */
-static inline StandardNote note_to_standard(Note p) {
-    return (StandardNote){.letter = note_letter(p),
-                          .accidental = note_accidental(p),
-                          .octave = note_octave(p)};
+static inline int note_midi(Note p) { return 2 * p.w + p.h; }
+
+/**
+ * Check whether two notes are the same.
+ * Enharmonic notes are not considered the same, use note_enharmonic().
+ */
+static inline bool notes_equal(Note p, Note q) {
+    return (p.w == q.w && p.h == q.h);
+}
+
+/**
+ * Check whether two Notes are enharmonic in a given EDO mapping.
+ * If you're unsure what the last parameter means, use 12.
+ * @param edo
+ * The EDO tuning system to compare enharmonicity in.
+ */
+static inline bool notes_enharmonic(Note m, Note n, int edo) {
+    return (note_chroma(m) % edo + edo) % edo ==
+           (note_chroma(n) % edo + edo) % edo;
 }
 
 /**
  * @brief
- * Converts from (letter, accidental, octave) format to (whole, half)
+ * Returns a new Note shifted by the given interval.
+ * @return
+ * Note (p + m)
  */
-Note note_from_standard(StandardNote p);
-
-/**
- * Maps a Note vector to a MappedVec type using a 2x2 matrix.
- * MappedVec is a special type to ensure it is not accidentally operated with
- * as if it is a regular Note.
- */
-static inline MappedVec note_map_2d(Note p, Map2d T) {
-    return (MappedVec){.x = T.m00 * p.w + T.m01 * p.h,
-                       .y = T.m10 * p.w + T.m11 * p.h};
+static inline Note transpose_real(Note p, Interval m) {
+    return (Note){.w = p.w + m.w, .h = p.h + m.h};
 }
 
 /**
@@ -98,26 +91,13 @@ static inline int note_map_1d(Note p, Map1d T) {
 }
 
 /**
- * Parses Scientific Pitch Notation to generate a note.
- * @param out
- * Pointer to a Note to store the parsed vector.
- * @return
- * 0 means nothing went wrong.
+ * Maps a Note vector to a MappedVec type using a 2x2 matrix.
+ * MappedVec is a special type to ensure it is not accidentally operated with
+ * as if it is a regular Note.
  */
-int note_from_spn(const char *s, Note *out);
-
-/**
- * @brief
- * Returns a new Note shifted by the given interval.
- * @return
- * Note (p + m)
- */
-static inline Note transpose_real(Note p, Interval m) {
-    return (Note){.w = p.w + m.w, .h = p.h + m.h};
-}
-
-static inline MirrorAxis axis_create(Note p, Note q) {
-    return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
+static inline MappedVec note_map_2d(Note p, Map2d T) {
+    return (MappedVec){.x = T.m00 * p.w + T.m01 * p.h,
+                       .y = T.m10 * p.w + T.m11 * p.h};
 }
 
 static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
@@ -135,6 +115,25 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 
 static inline Note note_invert(Note p, MirrorAxis a) {
     return (Note){.w = a.w - p.w, .h = a.h - p.h};
+}
+
+/**
+ * @brief
+ * Converts from (whole, half) format to (letter, accidental, octave)
+ */
+static inline StandardNote note_to_standard(Note p) {
+    return (StandardNote){.letter = note_letter(p),
+                          .accidental = note_accidental(p),
+                          .octave = note_octave(p)};
+}
+
+/**
+ * @brief
+ * Converts from (letter, accidental, octave) format to (whole, half)
+ */
+Note note_from_standard(StandardNote p);
+static inline MirrorAxis axis_create(Note p, Note q) {
+    return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
 }
 
 #endif

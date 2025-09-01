@@ -10,24 +10,34 @@ typedef struct {
 } Note;
 
 /**
- * An alternative pitch representation for:
- * - Pretty printing
- * - Rendering standard notation
- * - Potentially an easier parsing target
- */
-typedef struct {
-    int letter;
-    int accidental;
-    int octave;
-} StandardNote;
-
-/**
  * Intervals represent difference vectors between two Note vectors.
  */
 typedef struct {
     int w; // whole steps
     int h; // half steps
 } Interval;
+
+enum Mode {
+    LYDIAN,
+    IONIAN,
+    MIXOLYDIAN,
+    DORIAN,
+    AEOLIAN,
+    PHRYGIAN,
+    LOCRIAN,
+
+    MAJOR = IONIAN,
+    MINOR = AEOLIAN
+};
+
+/**
+ * This type is used with functions that reconcile Note vectors into a position
+ * in a key/mode.
+ */
+typedef struct {
+    int chroma;
+    enum Mode mode;
+} Key;
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Note vectors down to one
@@ -65,26 +75,16 @@ typedef struct {
     int h;
 } MirrorAxis;
 
-enum Mode {
-    LYDIAN,
-    IONIAN,
-    MIXOLYDIAN,
-    DORIAN,
-    AEOLIAN,
-    PHRYGIAN,
-    LOCRIAN,
-
-    MAJOR = IONIAN,
-    MINOR = AEOLIAN
-};
-
 /**
- * This type is used with functions that reconcile Note vectors into a position
- * in a key/mode.
+ * An alternative pitch representation for:
+ * - Pretty printing
+ * - Rendering standard notation
+ * - Potentially an easier parsing target
  */
 typedef struct {
-    int chroma;
-    enum Mode mode;
-} Key;
+    int letter;
+    int accidental;
+    int octave;
+} StandardNote;
 
 #endif

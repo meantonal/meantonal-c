@@ -5,6 +5,26 @@
 #include <stdbool.h>
 
 /**
+ * Parses an interval name like "P5" to generate an Interval.
+ * @param out
+ * Pointer to an Interval to store the resulting vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int interval_from_name(const char *s, Interval *out);
+
+/**
+ * Create an Interval from two SPN note names.
+ * e.g. "C4", "E4" -> major third.
+ * Interval is calculated q - p, not p - q.
+ * @param out
+ * Pointer to an Interval to store the resulting vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
+
+/**
  * @brief
  * Create an interval from two Note vectors.
  *
@@ -67,25 +87,5 @@ static inline int interval_quality(Interval m) {
         return (chroma + 8) / 7;
     return (chroma - 8) / 7;
 }
-
-/**
- * Parses an interval name like "P5" to generate an Interval.
- * @param out
- * Pointer to an Interval to store the resulting vector.
- * @return
- * 0 means nothing went wrong.
- */
-int interval_from_name(const char *s, Interval *out);
-
-/**
- * Create an Interval from two SPN note names.
- * e.g. "C4", "E4" -> major third.
- * Interval is calculated q - p, not p - q.
- * @param out
- * Pointer to an Interval to store the resulting vector.
- * @return
- * 0 means nothing went wrong.
- */
-int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 #endif
