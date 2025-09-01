@@ -1,18 +1,18 @@
-#include "../include/note.h"
+#include "../include/pitch.h"
 #include <stdlib.h>
 
-static const Note letters[7] = {
+static const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
 
-Note note_from_standard(StandardNote p) {
-    return (Note){
+Pitch pitch_from_standard(StandardPitch p) {
+    return (Pitch){
         .w = letters[p.letter].w + 5 * p.octave + p.accidental,
         .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
 }
 
-int note_from_spn(const char *s, Note *out) {
+int pitch_from_spn(const char *s, Pitch *out) {
     const char *p = s;
 
     // 1. letter name

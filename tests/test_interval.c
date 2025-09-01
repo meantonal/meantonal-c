@@ -1,13 +1,13 @@
 #include "../include/interval.h"
-#include "../include/note.h"
+#include "../include/pitch.h"
 #include "test_framework.h"
 #include <stdbool.h>
 
 void assert_int_between(char *p_str, char *q_str, char *m_str) {
-    Note p, q;
+    Pitch p, q;
     Interval m, n;
-    note_from_spn(p_str, &p);
-    note_from_spn(q_str, &q);
+    pitch_from_spn(p_str, &p);
+    pitch_from_spn(q_str, &q);
     interval_from_name(m_str, &m);
     n = interval_between(p, q);
     ASSERT_EQ(m.w, n.w);
@@ -94,13 +94,13 @@ void test_interval_quality(void) {
 }
 
 void test_transpose_real(void) {
-    Note p, q;
+    Pitch p, q;
     Interval m;
-    note_from_spn("C4", &p);
-    note_from_spn("E4", &q);
+    pitch_from_spn("C4", &p);
+    pitch_from_spn("E4", &q);
     interval_from_name("M3", &m);
     p = transpose_real(p, m);
-    ASSERT_EQ(notes_equal(p, q), true);
+    ASSERT_EQ(pitches_equal(p, q), true);
 }
 
 void test_interval_from_name(void) {

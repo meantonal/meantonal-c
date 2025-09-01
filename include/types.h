@@ -7,10 +7,10 @@
 typedef struct {
     int w; // whole steps
     int h; // half steps
-} Note;
+} Pitch;
 
 /**
- * Intervals represent difference vectors between two Note vectors.
+ * Intervals represent difference vectors between two Pitch vectors.
  */
 typedef struct {
     int w; // whole steps
@@ -31,7 +31,7 @@ enum Mode {
 };
 
 /**
- * This type is used with functions that reconcile Note vectors into a position
+ * This type is used with functions that reconcile Pitch vectors into a position
  * in a key/mode.
  */
 typedef struct {
@@ -40,8 +40,8 @@ typedef struct {
 } Key;
 
 /**
- * The Map1d represents a 1x2 matrix for mapping Note vectors down to one
- * dimension, e.g. (2, 1) maps Note vectors to MIDI.
+ * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
+ * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
     int m0, m1;
@@ -59,7 +59,7 @@ typedef struct {
 
 /**
  * This type is to distinguish vectors after applying 2d maps (change of
- * basis), so they are not accidentally used as regular Note or Interval
+ * basis), so they are not accidentally used as regular Pitch or Interval
  * vectors.
  */
 typedef struct {
@@ -68,7 +68,7 @@ typedef struct {
 } MappedVec;
 
 /**
- * This type is used with functions that invert Notes about a fixed point.
+ * This type is used with functions that invert Pitches about a fixed point.
  */
 typedef struct {
     int w;
@@ -85,6 +85,6 @@ typedef struct {
     int letter;
     int accidental;
     int octave;
-} StandardNote;
+} StandardPitch;
 
 #endif

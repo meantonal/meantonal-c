@@ -1,5 +1,5 @@
 #include "../include/interval.h"
-#include "../include/note.h"
+#include "../include/pitch.h"
 #include <stdlib.h>
 
 static const Interval major_ints[7] = {
@@ -48,7 +48,7 @@ int interval_from_name(const char *s, Interval *out) {
     int simple = generic % 7;
     int octave = generic / 7;
 
-    // 4. construct output note
+    // 4. construct output pitch
     out->w = major_ints[simple].w;
     out->h = major_ints[simple].h;
 
@@ -72,10 +72,10 @@ int interval_from_name(const char *s, Interval *out) {
 }
 
 int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
-    Note p, q;
-    if (note_from_spn(p_str, &p))
+    Pitch p, q;
+    if (pitch_from_spn(p_str, &p))
         return 1;
-    if (note_from_spn(q_str, &q))
+    if (pitch_from_spn(q_str, &q))
         return 1;
     out->w = q.w - p.w;
     out->h = q.h - p.h;

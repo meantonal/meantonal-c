@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // -----------------------------------------
 // HEADER DECLARATIONS ---------------------
@@ -8,17 +8,16 @@
 #ifndef MEANTONAL_HEADER
 #define MEANTONAL_HEADER
 
-
 /**
  * The most fundamental pitch representation in Meantonal.
  */
 typedef struct {
     int w; // whole steps
     int h; // half steps
-} Note;
+} Pitch;
 
 /**
- * Intervals represent difference vectors between two Note vectors.
+ * Intervals represent difference vectors between two Pitch vectors.
  */
 typedef struct {
     int w; // whole steps
@@ -39,7 +38,7 @@ enum Mode {
 };
 
 /**
- * This type is used with functions that reconcile Note vectors into a position
+ * This type is used with functions that reconcile Pitch vectors into a position
  * in a key/mode.
  */
 typedef struct {
@@ -48,8 +47,8 @@ typedef struct {
 } Key;
 
 /**
- * The Map1d represents a 1x2 matrix for mapping Note vectors down to one
- * dimension, e.g. (2, 1) maps Note vectors to MIDI.
+ * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
+ * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
     int m0, m1;
@@ -67,7 +66,7 @@ typedef struct {
 
 /**
  * This type is to distinguish vectors after applying 2d maps (change of
- * basis), so they are not accidentally used as regular Note or Interval
+ * basis), so they are not accidentally used as regular Pitch or Interval
  * vectors.
  */
 typedef struct {
@@ -76,7 +75,7 @@ typedef struct {
 } MappedVec;
 
 /**
- * This type is used with functions that invert Notes about a fixed point.
+ * This type is used with functions that invert Pitches about a fixed point.
  */
 typedef struct {
     int w;
@@ -93,37 +92,33 @@ typedef struct {
     int letter;
     int accidental;
     int octave;
-} StandardNote;
-
-
+} StandardPitch;
 
 extern const Map1d ET7, ET12, ET19, ET31, ET50, ET55;
 extern const Map2d WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
-
-
 /**
- * Parses Scientific Pitch Notation to generate a note.
+ * Parses Scientific Pitch Notation to generate a pitch.
  * @param out
- * Pointer to a Note to store the parsed vector.
+ * Pointer to a Pitch to store the parsed vector.
  * @return
  * 0 means nothing went wrong.
  */
-int note_from_spn(const char *s, Note *out);
+int pitch_from_spn(const char *s, Pitch *out);
 
 /**
  * @brief
- * The number of perfect fifths separating a Note from C.
+ * The number of perfect fifths separating a Pitch from C.
  * Abstracts octave information away.
  */
-static inline int note_chroma(Note p) { return 2 * p.w - 5 * p.h; }
+static inline int pitch_chroma(Pitch p) { return 2 * p.w - 5 * p.h; }
 
 /**
  * @brief
- * Returns the letter number of a Note.
+ * Returns the letter number of a Pitch.
  * To convert to an actual letter, just add 'a' or 'A'.
  */
-static inline int note_letter(Note p) { return (p.w + p.h + 2) % 7; }
+static inline int pitch_letter(Pitch p) { return (p.w + p.h + 2) % 7; }
 
 /**
  * @brief
@@ -131,79 +126,79 @@ static inline int note_letter(Note p) { return (p.w + p.h + 2) % 7; }
  * Sharps are positive.
  * Flats are negative.
  */
-static inline int note_accidental(Note p) {
-    int chroma = note_chroma(p) + 1;
+static inline int pitch_accidental(Pitch p) {
+    int chroma = pitch_chroma(p) + 1;
     return chroma < 0 ? chroma / 7 - 1 : chroma / 7;
 }
 
 /**
  * @brief
- * Returns the SPN octave number of a Note (C4 is middle C)
+ * Returns the SPN octave number of a Pitch (C4 is middle C)
  */
-static inline int note_octave(Note p) {
+static inline int pitch_octave(Pitch p) {
     return p.w + p.h < 0 ? (p.w + p.h) / 7 - 2 : (p.w + p.h) / 7 - 1;
 }
 
 /**
  * @brief
- * Returns the standard MIDI value for a given Note.
+ * Returns the standard MIDI value for a given Pitch.
  */
-static inline int note_midi(Note p) { return 2 * p.w + p.h; }
+static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
 
 /**
- * Check whether two notes are the same.
- * Enharmonic notes are not considered the same, use note_enharmonic().
+ * Check whether two pitches are the same.
+ * Enharmonic pitches are not considered the same, use pitch_enharmonic().
  */
-static inline bool notes_equal(Note p, Note q) {
+static inline bool pitches_equal(Pitch p, Pitch q) {
     return (p.w == q.w && p.h == q.h);
 }
 
 /**
- * Check whether two Notes are enharmonic in a given EDO mapping.
+ * Check whether two Pitches are enharmonic in a given EDO mapping.
  * If you're unsure what the last parameter means, use 12.
  * @param edo
  * The EDO tuning system to compare enharmonicity in.
  */
-static inline bool notes_enharmonic(Note m, Note n, int edo) {
-    return (note_chroma(m) % edo + edo) % edo ==
-           (note_chroma(n) % edo + edo) % edo;
+static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
+    return (pitch_chroma(m) % edo + edo) % edo ==
+           (pitch_chroma(n) % edo + edo) % edo;
 }
 
 /**
  * @brief
- * Returns a new Note shifted by the given interval.
+ * Returns a new Pitch shifted by the given interval.
  * @return
- * Note (p + m)
+ * Pitch (p + m)
  */
-static inline Note transpose_real(Note p, Interval m) {
-    return (Note){.w = p.w + m.w, .h = p.h + m.h};
+static inline Pitch transpose_real(Pitch p, Interval m) {
+    return (Pitch){.w = p.w + m.w, .h = p.h + m.h};
 }
 
 /**
- * Maps a note to an integer using a 1x2 matrix.
- * Most built-in functions that take Notes and return integers perform
+ * Maps a pitch to an integer using a 1x2 matrix.
+ * Most built-in functions that take Pitches and return integers perform
  * this operation somewhere along the way.
  */
-static inline int note_map_1d(Note p, Map1d T) {
+static inline int pitch_map_1d(Pitch p, Map1d T) {
     return T.m0 * p.w + T.m1 * p.h;
 }
 
 /**
- * Maps a Note vector to a MappedVec type using a 2x2 matrix.
+ * Maps a Pitch vector to a MappedVec type using a 2x2 matrix.
  * MappedVec is a special type to ensure it is not accidentally operated with
- * as if it is a regular Note.
+ * as if it is a regular Pitch.
  */
-static inline MappedVec note_map_2d(Note p, Map2d T) {
+static inline MappedVec pitch_map_2d(Pitch p, Map2d T) {
     return (MappedVec){.x = T.m00 * p.w + T.m01 * p.h,
                        .y = T.m10 * p.w + T.m11 * p.h};
 }
 
 static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
-    Note p, q;
+    Pitch p, q;
 
-    if (note_from_spn(p_str, &p))
+    if (pitch_from_spn(p_str, &p))
         return 1;
-    if (note_from_spn(q_str, &q))
+    if (pitch_from_spn(q_str, &q))
         return 1;
 
     out->w = p.w + q.w;
@@ -211,30 +206,28 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
     return 0;
 }
 
-static inline Note note_invert(Note p, MirrorAxis a) {
-    return (Note){.w = a.w - p.w, .h = a.h - p.h};
+static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
+    return (Pitch){.w = a.w - p.w, .h = a.h - p.h};
 }
 
 /**
  * @brief
  * Converts from (whole, half) format to (letter, accidental, octave)
  */
-static inline StandardNote note_to_standard(Note p) {
-    return (StandardNote){.letter = note_letter(p),
-                          .accidental = note_accidental(p),
-                          .octave = note_octave(p)};
+static inline StandardPitch pitch_to_standard(Pitch p) {
+    return (StandardPitch){.letter = pitch_letter(p),
+                           .accidental = pitch_accidental(p),
+                           .octave = pitch_octave(p)};
 }
 
 /**
  * @brief
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
-Note note_from_standard(StandardNote p);
-static inline MirrorAxis axis_create(Note p, Note q) {
+Pitch pitch_from_standard(StandardPitch p);
+static inline MirrorAxis axis_create(Pitch p, Pitch q) {
     return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
 }
-
-
 
 /**
  * Parses an interval name like "P5" to generate an Interval.
@@ -246,7 +239,7 @@ static inline MirrorAxis axis_create(Note p, Note q) {
 int interval_from_name(const char *s, Interval *out);
 
 /**
- * Create an Interval from two SPN note names.
+ * Create an Interval from two SPN pitch names.
  * e.g. "C4", "E4" -> major third.
  * Interval is calculated q - p, not p - q.
  * @param out
@@ -258,12 +251,12 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 /**
  * @brief
- * Create an interval from two Note vectors.
+ * Create an interval from two Pitch vectors.
  *
  * @return
  * Interval (q - p)
  */
-static inline Interval interval_between(Note p, Note q) {
+static inline Interval interval_between(Pitch p, Pitch q) {
     return (Interval){.w = q.w - p.w, .h = q.h - p.h};
 }
 
@@ -332,6 +325,8 @@ static inline Interval interval_negate(Interval m) {
 /**
  * @brief
  * Returns the sum of two intervals
+ * To take the difference, use interval_between((Pitch)m, n)
+ * rather than intervals_add(interval_negate(m), n), as it's faster.
  */
 static inline Interval intervals_add(Interval m, Interval n) {
     return (Interval){.w = m.w + n.w, .h = m.h + n.h};
@@ -342,17 +337,16 @@ static inline Interval intervals_add(Interval m, Interval n) {
  * Reduces an interval until it is smaller than an octave
  */
 static inline Interval interval_simple(Interval m) {
-    while (m.w + m.h > 7) {
+    while (m.w + m.h >= 7) {
         m.w -= 5;
         m.h -= 2;
     }
-    while (m.w + m.h < -7) {
+    while (m.w + m.h <= -7) {
         m.w += 5;
         m.h += 2;
     }
     return m;
 }
-
 
 int key_from_str(char *s, enum Mode mode, Key *out);
 #endif // MEANTONAL_HEADER
@@ -363,7 +357,6 @@ int key_from_str(char *s, enum Mode mode, Key *out);
 
 #ifdef MEANTONAL
 #undef MEANTONAL
-
 
 const Map1d ET7 = {1, 1};
 const Map1d ET12 = {2, 1};
@@ -378,18 +371,18 @@ const Map2d WICKI_FROM = {1, 3, 0, 1};
 const Map2d GENERATORS_TO = {2, -5, -1, 3};
 const Map2d GENERATORS_FROM = {3, 5, 1, 2};
 
-static const Note letters[7] = {
+static const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
 
-Note note_from_standard(StandardNote p) {
-    return (Note){
+Pitch pitch_from_standard(StandardPitch p) {
+    return (Pitch){
         .w = letters[p.letter].w + 5 * p.octave + p.accidental,
         .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
 }
 
-int note_from_spn(const char *s, Note *out) {
+int pitch_from_spn(const char *s, Pitch *out) {
     const char *p = s;
 
     // 1. letter name
@@ -484,7 +477,7 @@ int interval_from_name(const char *s, Interval *out) {
     int simple = generic % 7;
     int octave = generic / 7;
 
-    // 4. construct output note
+    // 4. construct output pitch
     out->w = major_ints[simple].w;
     out->h = major_ints[simple].h;
 
@@ -508,10 +501,10 @@ int interval_from_name(const char *s, Interval *out) {
 }
 
 int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
-    Note p, q;
-    if (note_from_spn(p_str, &p))
+    Pitch p, q;
+    if (pitch_from_spn(p_str, &p))
         return 1;
-    if (note_from_spn(q_str, &q))
+    if (pitch_from_spn(q_str, &q))
         return 1;
     out->w = q.w - p.w;
     out->h = q.h - p.h;
@@ -557,4 +550,3 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     return 0;
 }
 #endif // MEANTONAL
-

@@ -19,7 +19,7 @@ strip_headers() {
 
 strip_headers < "include/types.h" >> "$OUT"
 strip_headers < "include/constants.h" >> "$OUT"
-strip_headers < "include/note.h" >> "$OUT"
+strip_headers < "include/pitch.h" >> "$OUT"
 strip_headers < "include/interval.h" >> "$OUT"
 strip_headers < "include/key.h" >> "$OUT"
 
@@ -31,7 +31,7 @@ printf "#ifdef MEANTONAL\n" >> "$OUT"
 printf "#undef MEANTONAL\n\n" >> "$OUT"
 
 strip_headers < "src/constants.c" >> "$OUT"
-strip_headers < "src/note.c" >> "$OUT"
+strip_headers < "src/pitch.c" >> "$OUT"
 strip_headers < "src/interval.c" >> "$OUT"
 strip_headers < "src/key.c" >> "$OUT"
 # for src in src/*.c; do

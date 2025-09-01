@@ -14,7 +14,7 @@
 int interval_from_name(const char *s, Interval *out);
 
 /**
- * Create an Interval from two SPN note names.
+ * Create an Interval from two SPN pitch names.
  * e.g. "C4", "E4" -> major third.
  * Interval is calculated q - p, not p - q.
  * @param out
@@ -26,12 +26,12 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 /**
  * @brief
- * Create an interval from two Note vectors.
+ * Create an interval from two Pitch vectors.
  *
  * @return
  * Interval (q - p)
  */
-static inline Interval interval_between(Note p, Note q) {
+static inline Interval interval_between(Pitch p, Pitch q) {
     return (Interval){.w = q.w - p.w, .h = q.h - p.h};
 }
 
@@ -100,6 +100,8 @@ static inline Interval interval_negate(Interval m) {
 /**
  * @brief
  * Returns the sum of two intervals
+ * To take the difference, use interval_between((Pitch)m, n)
+ * rather than intervals_add(interval_negate(m), n), as it's faster.
  */
 static inline Interval intervals_add(Interval m, Interval n) {
     return (Interval){.w = m.w + n.w, .h = m.h + n.h};
@@ -110,11 +112,11 @@ static inline Interval intervals_add(Interval m, Interval n) {
  * Reduces an interval until it is smaller than an octave
  */
 static inline Interval interval_simple(Interval m) {
-    while (m.w + m.h > 7) {
+    while (m.w + m.h >= 7) {
         m.w -= 5;
         m.h -= 2;
     }
-    while (m.w + m.h < -7) {
+    while (m.w + m.h <= -7) {
         m.w += 5;
         m.h += 2;
     }
