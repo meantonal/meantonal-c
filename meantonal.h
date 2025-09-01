@@ -329,6 +329,30 @@ static inline Interval interval_negate(Interval m) {
     return (Interval){.w = -m.w, .h = -m.h};
 }
 
+/**
+ * @brief
+ * Returns the sum of two intervals
+ */
+static inline Interval intervals_add(Interval m, Interval n) {
+    return (Interval){.w = m.w + n.w, .h = m.h + n.h};
+}
+
+/**
+ * @brief
+ * Reduces an interval until it is smaller than an octave
+ */
+static inline Interval interval_simple(Interval m) {
+    while (m.w + m.h > 7) {
+        m.w -= 5;
+        m.h -= 2;
+    }
+    while (m.w + m.h < -7) {
+        m.w += 5;
+        m.h += 2;
+    }
+    return m;
+}
+
 
 int key_from_str(char *s, enum Mode mode, Key *out);
 #endif // MEANTONAL_HEADER
