@@ -73,6 +73,28 @@ typedef struct {
     int h;
 } MirrorAxis;
 
+enum Mode {
+    LYDIAN,
+    IONIAN,
+    MIXOLYDIAN,
+    DORIAN,
+    AEOLIAN,
+    PHRYGIAN,
+    LOCRIAN,
+
+    MAJOR = IONIAN,
+    MINOR = AEOLIAN
+};
+
+/**
+ * This type is used with functions that reconcile Note vectors into a position
+ * in a key/mode.
+ */
+typedef struct {
+    int chroma;
+    enum Mode mode;
+} Key;
+
 
 
 extern const Map1d ET7, ET12, ET19, ET31, ET50, ET55;
