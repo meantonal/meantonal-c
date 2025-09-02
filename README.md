@@ -10,9 +10,10 @@
 Meantonal is a specification for representing pitch information in Western music, and a suite of tools for operating on this information. It's a small, focused library that aims to empower developers to build musical apps more easily.
 
 Meantonal is:
+
 - **Flexible with I/O**: easily ingest and translate between Scientific Pitch Notation, Helmholtz notation, ABC and Lilypond. Extract MIDI values at any time.
 - **Semantically nondestructive**: the distinction between enharmonic notes such as $\sf{C}\sharp$ and $\sf{D}\flat$ is maintained. Things that don't behave the same way musically are not encoded the same way in Meantonal.
-- **Just vectors**: under the hood [notes](https://meantonal.org/learn/notes/) and [intervals](https://meantonal.org/learn/intervals/) are 2d vectors. Operations are simple to understand, surprisingly powerful, and fast to execute.
+- **Just vectors**: under the hood [pitches](https://meantonal.org/learn/pitch/) and [intervals](https://meantonal.org/learn/intervals/) are 2d vectors. Operations are simple to understand, surprisingly powerful, and fast to execute.
 - **Tuning-agnostic**: Target any meantone tuning system, not just 12-tone equal temperament. You want 31 tones per octave? Done.
 
 # Installation
@@ -30,13 +31,13 @@ You must `#define MEANTONAL` in exactly **one** file before the first inclusion 
 #define MEANTONAL
 #include "meantonal.h"
 
-Note c4, e4; // declares but does not assign values to two Note vectors
-Note g4 = { 28, 11 }; // directly initialises a Note
+Pitch c4, e4; // declares but does not assign values to two Pitch vectors
+Pitch g4 = { 28, 11 }; // directly initialises a Pitch
 // assigning values
-if (note_from_spn("C4", &c4))
-    fprintf(stderr, "error parsing note from SPN");
-if (note_from_spn("E4", &e4))
-    fprintf(stderr, "error parsing note from SPN");
+if (pitch_from_spn("C4", &c4))
+    fprintf(stderr, "error parsing pitch from SPN");
+if (pitch_from_spn("E4", &e4))
+    fprintf(stderr, "error parsing pitch from SPN");
 
 Interval M3 = interval_between(c4, e4); // creates a major 3rd Interval vector
 Interval P5 = interval_between(c4, g5); // creates a perfect 5th interval vector
@@ -50,15 +51,15 @@ After that, just include `meantonal.h` in any other files as needed.
 // bar.c
 #include "meantonal.h"
 
-Note p;
-if (note_from_spn("E4", &p))
-    fprintf(stderr, "error parsing note from SPN");
+Pitch p;
+if (pitch_from_spn("E4", &p))
+    fprintf(stderr, "error parsing pitch from SPN");
 
 MirrorAxis a;
 if (axis_from_spn("C4", "G4"))
-    fprintf(stderr, "error parsing note(s) from SPN when creating MirrorAxis");
+    fprintf(stderr, "error parsing pitch(s) from SPN when creating MirrorAxis");
 
-note_invert(p, a); // p has been inverted about the axis to Eb4
+pitch_invert(p, a); // p has been inverted about the axis to Eb4
 
 // etc.
 ```
