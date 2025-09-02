@@ -10,7 +10,7 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     } else {
         return 1; // invalid
     }
-    chroma = (letter * 2 + 4) % 7;
+    chroma = (letter * 2 + 4) % 7 - 1; // trust me it works.
 
     // 2. accidental
     int acc = 0;
@@ -37,4 +37,17 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     out->mode = mode;
 
     return 0;
+}
+
+enum Alteration degree_alteration(Pitch p, Key k) {
+    int x = pitch_chroma(p) + k.mode - k.chroma;
+    if (0 <= x && x < 7)
+        return DIATONIC_DEG;
+    if (7 <= x && x < 12)
+        return RAISED_DEG;
+    if (-5 <= x && x < 0)
+        return LOWERED_DEG;
+    if (x < -5)
+        return FOREIGN_DEG_FLAT;
+    return FOREIGN_DEG_SHARP;
 }

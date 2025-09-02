@@ -8,7 +8,6 @@
 #ifndef MEANTONAL_HEADER
 #define MEANTONAL_HEADER
 
-
 /**
  * The most fundamental pitch representation in Meantonal.
  */
@@ -25,6 +24,9 @@ typedef struct {
     int h; // half steps
 } Interval;
 
+/**
+ * Enum of modes numbered in descending fifths starting from Lydian = 0.
+ */
 enum Mode {
     LYDIAN,
     IONIAN,
@@ -46,6 +48,17 @@ typedef struct {
     int chroma;
     enum Mode mode;
 } Key;
+
+/**
+ * Enum for indicating the alteration of scale degrees within a key or mode.
+ */
+enum Alteration {
+    FOREIGN_DEG_FLAT = -2,
+    LOWERED_DEG,
+    DIATONIC_DEG,
+    RAISED_DEG,
+    FOREIGN_DEG_SHARP
+};
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
@@ -357,6 +370,33 @@ static inline Interval interval_simple(Interval m) {
 
 int key_from_str(char *s, enum Mode mode, Key *out);
 
+static inline int degree_number(Pitch p, Key k) {
+    return ((pitch_chroma(p) - k.chroma) * 4 % 7 + 7) % 7;
+}
+
+enum Alteration degree_alteration(Pitch p, Key k);
+
+
+
+/**
+ * Maps to an integer using a 1x2 matrix.
+ * Most built-in functions that take Pitches and return integers perform
+ * this operation somewhere along the way.
+ */
+static inline int map_to_1d(MapVec p, Map1d T) {
+    return T.m0 * p.x + T.m1 * p.y;
+}
+
+/**
+ * Maps to a 2d MapVec type using a 2x2 matrix.
+ * You must cast the result to a Pitch or Interval if you intend to use it as
+ * one.
+ */
+static inline MapVec map_to_2d(MapVec p, Map2d T) {
+    return (MapVec){.x = T.m00 * p.x + T.m01 * p.y,
+                    .y = T.m10 * p.x + T.m11 * p.y};
+}
+
 #endif // MEANTONAL_HEADER
 
 // -----------------------------------------
@@ -365,7 +405,6 @@ int key_from_str(char *s, enum Mode mode, Key *out);
 
 #ifdef MEANTONAL
 #undef MEANTONAL
-
 
 const Map1d ET7 = {1, 1};
 const Map1d ET12 = {2, 1};
@@ -530,7 +569,7 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     } else {
         return 1; // invalid
     }
-    chroma = (letter * 2 + 4) % 7;
+    chroma = (letter * 2 + 4) % 7 - 1; // trust me it works.
 
     // 2. accidental
     int acc = 0;
@@ -557,6 +596,19 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     out->mode = mode;
 
     return 0;
+}
+
+enum Alteration degree_alteration(Pitch p, Key k) {
+    int x = pitch_chroma(p) + k.mode - k.chroma;
+    if (0 <= x && x < 7)
+        return DIATONIC_DEG;
+    if (7 <= x && x < 12)
+        return RAISED_DEG;
+    if (-5 <= x && x < 0)
+        return LOWERED_DEG;
+    if (x < -5)
+        return FOREIGN_DEG_FLAT;
+    return FOREIGN_DEG_SHARP;
 }
 #endif // MEANTONAL
 

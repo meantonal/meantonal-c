@@ -10,11 +10,11 @@ printf "// -----------------------------------------\n" >> "$OUT"
 printf "// HEADER DECLARATIONS ---------------------\n" >> "$OUT"
 printf "// -----------------------------------------\n\n" >> "$OUT"
 printf "#ifndef MEANTONAL_HEADER\n" >> "$OUT"
-printf "#define MEANTONAL_HEADER\n\n" >> "$OUT"
+printf "#define MEANTONAL_HEADER\n" >> "$OUT"
 
 # helper: strip include guards and local includes
 strip_headers() {
-    sed -E '/^#ifndef|^#define|^#endif/d; /^#include/d'
+    sed -E '/^#ifndef|^#define|^#endif|^#include/d'
 }
 
 strip_headers < "include/types.h" >> "$OUT"
@@ -22,13 +22,14 @@ strip_headers < "include/constants.h" >> "$OUT"
 strip_headers < "include/pitch.h" >> "$OUT"
 strip_headers < "include/interval.h" >> "$OUT"
 strip_headers < "include/key.h" >> "$OUT"
+strip_headers < "include/map.h" >> "$OUT"
 
 printf "#endif // MEANTONAL_HEADER\n\n" >> "$OUT"
 printf "// -----------------------------------------\n" >> "$OUT"
 printf "// IMPLEMENTATION --------------------------\n" >> "$OUT"
 printf "// -----------------------------------------\n\n" >> "$OUT"
 printf "#ifdef MEANTONAL\n" >> "$OUT"
-printf "#undef MEANTONAL\n\n" >> "$OUT"
+printf "#undef MEANTONAL\n" >> "$OUT"
 
 strip_headers < "src/constants.c" >> "$OUT"
 strip_headers < "src/pitch.c" >> "$OUT"

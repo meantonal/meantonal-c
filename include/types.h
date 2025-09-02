@@ -17,6 +17,9 @@ typedef struct {
     int h; // half steps
 } Interval;
 
+/**
+ * Enum of modes numbered in descending fifths starting from Lydian = 0.
+ */
 enum Mode {
     LYDIAN,
     IONIAN,
@@ -38,6 +41,17 @@ typedef struct {
     int chroma;
     enum Mode mode;
 } Key;
+
+/**
+ * Enum for indicating the alteration of scale degrees within a key or mode.
+ */
+enum Alteration {
+    FOREIGN_DEG_FLAT = -2,
+    LOWERED_DEG,
+    DIATONIC_DEG,
+    RAISED_DEG,
+    FOREIGN_DEG_SHARP
+};
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
