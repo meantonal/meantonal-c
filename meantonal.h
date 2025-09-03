@@ -45,9 +45,16 @@ enum Mode {
  * in a key/mode.
  */
 typedef struct {
-    int chroma;
+    struct {
+        int letter;
+        int accidental;
+    } tonic;
     enum Mode mode;
-} Key;
+    struct {
+        int chroma;
+        int letter;
+    } offset; // offsets used by internal functions to reconcile notes.
+} TonalContext;
 
 /**
  * Enum for indicating the alteration of scale degrees within a key or mode.
@@ -368,13 +375,13 @@ static inline Interval interval_simple(Interval m) {
 
 
 
-int key_from_str(char *s, enum Mode mode, Key *out);
+int context_from_str(char *s, enum Mode mode, TonalContext *out);
 
-static inline int degree_number(Pitch p, Key k) {
-    return ((pitch_chroma(p) - k.chroma) * 4 % 7 + 7) % 7;
+static inline int degree_number(Pitch p, TonalContext key) {
+    return ((p.w + p.h - key.offset.letter) % 7 + 7) % 7;
 }
 
-enum Alteration degree_alteration(Pitch p, Key k);
+enum Alteration degree_alteration(Pitch p, TonalContext key);
 
 
 
@@ -559,7 +566,7 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
     return 0;
 }
 
-int key_from_str(char *s, enum Mode mode, Key *out) {
+int context_from_str(char *s, enum Mode mode, TonalContext *out) {
     // 1. letter name
     int letter, chroma;
     if (*s >= 'A' && *s <= 'G') {
@@ -592,14 +599,17 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     }
     chroma += 7 * acc;
 
-    out->chroma = chroma;
+    out->tonic.letter = letter;
+    out->tonic.accidental = acc;
     out->mode = mode;
+    out->offset.chroma = mode - chroma;
+    out->offset.letter = letter - 2;
 
     return 0;
 }
 
-enum Alteration degree_alteration(Pitch p, Key k) {
-    int x = pitch_chroma(p) + k.mode - k.chroma;
+enum Alteration degree_alteration(Pitch p, TonalContext key) {
+    int x = pitch_chroma(p) + key.offset.chroma;
     if (0 <= x && x < 7)
         return DIATONIC_DEG;
     if (7 <= x && x < 12)

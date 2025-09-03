@@ -1,19 +1,21 @@
-#include "../include/key.h"
+#include "../include/tonality.h"
 #include "test_framework.h"
 
-void test_key_from_str(void) {
-    Key k;
-    key_from_str("F#", DORIAN, &k);
-    ASSERT_EQ(k.chroma, 6);
+void test_context_from_str(void) {
+    TonalContext k;
+    context_from_str("F#", DORIAN, &k);
+    ASSERT_EQ(k.tonic.letter, 5);
+    ASSERT_EQ(k.tonic.accidental, 1);
+    ASSERT_EQ(k.offset.chroma, -3);
     ASSERT_EQ(k.mode, DORIAN);
-    key_from_str("Eb", MAJOR, &k);
-    ASSERT_EQ(k.chroma, -3);
+    context_from_str("Eb", MAJOR, &k);
+    ASSERT_EQ(k.offset.chroma, 4);
     ASSERT_EQ(k.mode, MAJOR);
 }
 
 void test_degree_number(void) {
-    Key k;
-    key_from_str("F#", DORIAN, &k);
+    TonalContext k;
+    context_from_str("F#", DORIAN, &k);
     Pitch p;
     pitch_from_spn("F#4", &p);
     ASSERT_EQ(degree_number(p, k), 0);
@@ -21,11 +23,15 @@ void test_degree_number(void) {
     ASSERT_EQ(degree_number(p, k), 0);
     pitch_from_spn("C4", &p);
     ASSERT_EQ(degree_number(p, k), 4);
+    pitch_from_spn("C-3", &p);
+    ASSERT_EQ(degree_number(p, k), 4);
+    pitch_from_spn("D10", &p);
+    ASSERT_EQ(degree_number(p, k), 5);
 }
 
 void test_degree_alteration(void) {
-    Key k;
-    key_from_str("F#", DORIAN, &k);
+    TonalContext k;
+    context_from_str("F#", DORIAN, &k);
     Pitch p;
     pitch_from_spn("F#4", &p);
     ASSERT_EQ(degree_alteration(p, k), DIATONIC_DEG);
@@ -40,7 +46,7 @@ void test_degree_alteration(void) {
 }
 
 void test_key_functions(void) {
-    RUN_TESTS(test_key_from_str);
+    RUN_TESTS(test_context_from_str);
     RUN_TESTS(test_degree_number);
     RUN_TESTS(test_degree_alteration);
 }

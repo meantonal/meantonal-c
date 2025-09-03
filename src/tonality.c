@@ -1,6 +1,6 @@
-#include "../include/key.h"
+#include "../include/tonality.h"
 
-int key_from_str(char *s, enum Mode mode, Key *out) {
+int context_from_str(char *s, enum Mode mode, TonalContext *out) {
     // 1. letter name
     int letter, chroma;
     if (*s >= 'A' && *s <= 'G') {
@@ -33,14 +33,17 @@ int key_from_str(char *s, enum Mode mode, Key *out) {
     }
     chroma += 7 * acc;
 
-    out->chroma = chroma;
+    out->tonic.letter = letter;
+    out->tonic.accidental = acc;
     out->mode = mode;
+    out->offset.chroma = mode - chroma;
+    out->offset.letter = letter - 2;
 
     return 0;
 }
 
-enum Alteration degree_alteration(Pitch p, Key k) {
-    int x = pitch_chroma(p) + k.mode - k.chroma;
+enum Alteration degree_alteration(Pitch p, TonalContext key) {
+    int x = pitch_chroma(p) + key.offset.chroma;
     if (0 <= x && x < 7)
         return DIATONIC_DEG;
     if (7 <= x && x < 12)

@@ -38,9 +38,16 @@ enum Mode {
  * in a key/mode.
  */
 typedef struct {
-    int chroma;
+    struct {
+        int letter;
+        int accidental;
+    } tonic;
     enum Mode mode;
-} Key;
+    struct {
+        int chroma;
+        int letter;
+    } offset; // offsets used by internal functions to reconcile notes.
+} TonalContext;
 
 /**
  * Enum for indicating the alteration of scale degrees within a key or mode.
