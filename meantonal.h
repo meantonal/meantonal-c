@@ -50,11 +50,18 @@ typedef struct {
         int accidental;
     } tonic;
     enum Mode mode;
-    struct {
-        int chroma;
-        int letter;
-    } offset; // offsets used by internal functions to reconcile notes.
+    int chroma_offset; // offset used by internal functions to reconcile notes.
 } TonalContext;
+
+enum Degree {
+    TONIC,
+    SUPERTONIC,
+    MEDIANT,
+    SUBDOMINANT,
+    DOMINANT,
+    SUBMEDIANT,
+    SUBTONIC
+};
 
 /**
  * Enum for indicating the alteration of scale degrees within a key or mode.
@@ -66,6 +73,11 @@ enum Alteration {
     RAISED_DEG,
     FOREIGN_DEG_SHARP
 };
+
+typedef struct {
+    enum Degree degree;
+    enum Alteration alteration;
+} TonalPitch;
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
@@ -377,11 +389,23 @@ static inline Interval interval_simple(Interval m) {
 
 int context_from_str(char *s, enum Mode mode, TonalContext *out);
 
-static inline int degree_number(Pitch p, TonalContext key) {
-    return ((p.w + p.h - key.offset.letter) % 7 + 7) % 7;
+TonalContext context_from_chroma(int chroma, enum Mode mode);
+
+TonalContext context_from_pitch(Pitch p, enum Mode mode);
+
+static inline enum Degree degree_number(Pitch p, TonalContext key) {
+    return (enum Degree)(((p.w + p.h - key.tonic.letter + 2) % 7 + 7) % 7);
 }
 
 enum Alteration degree_alteration(Pitch p, TonalContext key);
+
+static inline int degree_chroma(enum Degree degree, TonalContext key) {
+    return (degree * 2 + key.mode) % 7 - key.chroma_offset;
+}
+
+Pitch snap_diatonic(Pitch p, TonalContext key);
+
+Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
 
 
 
@@ -602,14 +626,35 @@ int context_from_str(char *s, enum Mode mode, TonalContext *out) {
     out->tonic.letter = letter;
     out->tonic.accidental = acc;
     out->mode = mode;
-    out->offset.chroma = mode - chroma;
-    out->offset.letter = letter - 2;
+    out->chroma_offset = mode - chroma;
 
     return 0;
 }
 
+TonalContext context_from_chroma(int chroma, enum Mode mode) {
+    TonalContext out;
+
+    out.mode = mode;
+    out.chroma_offset = mode - chroma;
+    out.tonic.letter = chroma % 7 + 2;
+    out.tonic.accidental = --chroma < 0 ? -chroma / 12 : chroma / 12;
+
+    return out;
+}
+
+TonalContext context_from_pitch(Pitch p, enum Mode mode) {
+    TonalContext out;
+
+    out.tonic.letter = pitch_letter(p);
+    out.tonic.accidental = pitch_accidental(p);
+    out.mode = mode;
+    out.chroma_offset = mode - pitch_chroma(p);
+
+    return out;
+}
+
 enum Alteration degree_alteration(Pitch p, TonalContext key) {
-    int x = pitch_chroma(p) + key.offset.chroma;
+    int x = pitch_chroma(p) + key.chroma_offset;
     if (0 <= x && x < 7)
         return DIATONIC_DEG;
     if (7 <= x && x < 12)
@@ -619,6 +664,23 @@ enum Alteration degree_alteration(Pitch p, TonalContext key) {
     if (x < -5)
         return FOREIGN_DEG_FLAT;
     return FOREIGN_DEG_SHARP;
+}
+
+Pitch snap_diatonic(Pitch p, TonalContext key) {
+    while (degree_alteration(p, key) > DIATONIC_DEG) {
+        p.w--;
+        p.h++;
+    }
+    while (degree_alteration(p, key) < DIATONIC_DEG) {
+        p.w++;
+        p.h--;
+    }
+
+    return p;
+}
+
+Pitch transpose_diatonic(Pitch p, int interval, TonalContext key) {
+    return snap_diatonic(transpose_real(p, (Interval){interval, 0}), key);
 }
 #endif // MEANTONAL
 

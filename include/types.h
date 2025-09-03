@@ -43,11 +43,18 @@ typedef struct {
         int accidental;
     } tonic;
     enum Mode mode;
-    struct {
-        int chroma;
-        int letter;
-    } offset; // offsets used by internal functions to reconcile notes.
+    int chroma_offset; // offset used by internal functions to reconcile notes.
 } TonalContext;
+
+enum Degree {
+    TONIC,
+    SUPERTONIC,
+    MEDIANT,
+    SUBDOMINANT,
+    DOMINANT,
+    SUBMEDIANT,
+    SUBTONIC
+};
 
 /**
  * Enum for indicating the alteration of scale degrees within a key or mode.
@@ -59,6 +66,11 @@ enum Alteration {
     RAISED_DEG,
     FOREIGN_DEG_SHARP
 };
+
+typedef struct {
+    enum Degree degree;
+    enum Alteration alteration;
+} TonalPitch;
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
