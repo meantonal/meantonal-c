@@ -136,6 +136,22 @@ void test_pitch_from_spn(void) {
     ASSERT_EQ(p.h, 12);
 }
 
+void test_pitch_from_chroma(void) {
+    Pitch p;
+    p = pitch_from_chroma(0, -1);
+    ASSERT_EQ(p.w, 0);
+    ASSERT_EQ(p.h, 0);
+    p = pitch_from_chroma(0, 4);
+    ASSERT_EQ(p.w, 25);
+    ASSERT_EQ(p.h, 10);
+    p = pitch_from_chroma(7, 4);
+    ASSERT_EQ(p.w, 26);
+    ASSERT_EQ(p.h, 9);
+    p = pitch_from_chroma(4, 4);
+    ASSERT_EQ(p.w, 27);
+    ASSERT_EQ(p.h, 10);
+}
+
 void test_pitch_invert(void) {
     MirrorAxis a;
     axis_from_spn("C4", "G4", &a);
@@ -165,5 +181,6 @@ void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_to_standard);
     RUN_TESTS(test_pitch_from_standard);
     RUN_TESTS(test_pitch_from_spn);
+    RUN_TESTS(test_pitch_from_chroma);
     RUN_TESTS(test_pitch_invert);
 }

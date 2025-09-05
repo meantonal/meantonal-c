@@ -5,13 +5,6 @@ static const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
 
-Pitch pitch_from_standard(StandardPitch p) {
-    return (Pitch){
-        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
-        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
-    };
-}
-
 int pitch_from_spn(const char *s, Pitch *out) {
     const char *p = s;
 
@@ -59,4 +52,26 @@ int pitch_from_spn(const char *s, Pitch *out) {
     out->h += (int)oct * 2;
 
     return 0;
+}
+
+Pitch pitch_from_chroma(int chroma, int octave) {
+    Pitch p = {0, 0};
+    p.w += chroma * 3;
+    p.h += chroma;
+    while (pitch_octave(p) > octave) {
+        p.w -= 5;
+        p.h -= 2;
+    }
+    while (pitch_octave(p) < octave) {
+        p.w += 5;
+        p.h += 2;
+    }
+    return p;
+}
+
+Pitch pitch_from_standard(StandardPitch p) {
+    return (Pitch){
+        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
+        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
+    };
 }

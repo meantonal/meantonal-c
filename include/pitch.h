@@ -14,6 +14,12 @@
 int pitch_from_spn(const char *s, Pitch *out);
 
 /**
+ * Creates a Pitch vector from a specified chroma (signed distance from C in
+ * 5ths) and octave (following SPN octave numbering).
+ */
+Pitch pitch_from_chroma(int chroma, int octave);
+
+/**
  * @brief
  * The number of perfect fifths separating a Pitch from C.
  * Abstracts octave information away.
@@ -25,7 +31,9 @@ static inline int pitch_chroma(Pitch p) { return 2 * p.w - 5 * p.h; }
  * Returns the letter number of a Pitch.
  * To convert to an actual letter, just add 'a' or 'A'.
  */
-static inline int pitch_letter(Pitch p) { return (p.w + p.h + 2) % 7; }
+static inline int pitch_letter(Pitch p) {
+    return ((p.w + p.h + 2) % 7 + 7) % 7;
+}
 
 /**
  * @brief
