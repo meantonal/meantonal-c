@@ -78,6 +78,13 @@ enum Alteration {
 };
 
 /**
+ * Type for constructing arbitrary pitch class sets.
+ * Initialise it to NULL and use pc_set_insert to add pitch classes by chroma.
+ * You are responsible for calling pc_set_destroy to free up resources.
+ */
+typedef struct tnode *PitchClassSet;
+
+/**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
@@ -146,14 +153,12 @@ int pitch_from_spn(const char *s, Pitch *out);
 Pitch pitch_from_chroma(int chroma, int octave);
 
 /**
- * @brief
  * The number of perfect fifths separating a Pitch from C.
  * Abstracts octave information away.
  */
 static inline int pitch_chroma(Pitch p) { return 2 * p.w - 5 * p.h; }
 
 /**
- * @brief
  * Returns the letter number of a Pitch.
  * To convert to an actual letter, just add 'a' or 'A'.
  */
@@ -162,7 +167,6 @@ static inline int pitch_letter(Pitch p) {
 }
 
 /**
- * @brief
  * 0 is natural.
  * Sharps are positive.
  * Flats are negative.
@@ -173,7 +177,6 @@ static inline int pitch_accidental(Pitch p) {
 }
 
 /**
- * @brief
  * Returns the SPN octave number of a Pitch (C4 is middle C)
  */
 static inline int pitch_octave(Pitch p) {
@@ -181,7 +184,6 @@ static inline int pitch_octave(Pitch p) {
 }
 
 /**
- * @brief
  * Returns the standard MIDI value for a given Pitch.
  */
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
@@ -206,7 +208,6 @@ static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
 }
 
 /**
- * @brief
  * Returns a new Pitch shifted by the given interval.
  * @return
  * Pitch (p + m)
@@ -216,7 +217,6 @@ static inline Pitch transpose_real(Pitch p, Interval m) {
 }
 
 /**
- * @brief
  * Creates a MirrorAxis about which to invert Pitch vectors from two input
  * Pitches that will map to each other.
  */
@@ -225,7 +225,6 @@ static inline MirrorAxis axis_create(Pitch p, Pitch q) {
 }
 
 /**
- * @brief
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
  * strings representing Pitches that will map to each other.
  * @param out
@@ -247,7 +246,6 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 }
 
 /**
- * @brief
  * Inverts a Pitch about a given MirrorAxis
  */
 static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
@@ -255,7 +253,6 @@ static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
 }
 
 /**
- * @brief
  * Converts from (whole, half) format to (letter, accidental, octave)
  */
 static inline StandardPitch pitch_to_standard(Pitch p) {
@@ -265,7 +262,6 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
 }
 
 /**
- * @brief
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
 Pitch pitch_from_standard(StandardPitch p);
@@ -293,7 +289,6 @@ int interval_from_name(const char *s, Interval *out);
 int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 /**
- * @brief
  * Create an interval from two Pitch vectors.
  *
  * @return
@@ -304,14 +299,12 @@ static inline Interval interval_between(Pitch p, Pitch q) {
 }
 
 /**
- * @brief
  * The number of perfect fifths separating an interval from the unison.
  * Abstracts octave information away.
  */
 static inline int interval_chroma(Interval m) { return (2 * m.w) - (5 * m.h); }
 
 /**
- * @brief
  * Check whether two intervals are the same.
  * Enharmonic intervals are not considered the same, use interval_enharmonic().
  */
@@ -331,13 +324,11 @@ static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
 }
 
 /**
- * @brief
  * Get the number of diatonic steps subtended by an Interval.
  */
 static inline int stepspan(Interval m) { return m.w + m.h; }
 
 /**
- * @brief
  * 0 is perfect.
  * 1/-1 are major/minor.
  * 2/-2 are augmente/diminished.
@@ -357,7 +348,6 @@ static inline int interval_quality(Interval m) {
 }
 
 /**
- * @brief
  * Returns the passed in interval with its values negated.
  * An ascending major 3rd becomes a descending major 3rd.
  */
@@ -366,7 +356,6 @@ static inline Interval interval_negate(Interval m) {
 }
 
 /**
- * @brief
  * Returns the sum of two intervals
  * To take the difference, use interval_between((Pitch)m, n)
  * rather than intervals_add(interval_negate(m), n), as it's faster.
@@ -376,7 +365,6 @@ static inline Interval intervals_add(Interval m, Interval n) {
 }
 
 /**
- * @brief
  * Reduces an interval until it is smaller than an octave
  */
 static inline Interval interval_simple(Interval m) {
@@ -448,6 +436,25 @@ Pitch snap_diatonic(Pitch p, TonalContext key);
  * TonalContext.
  */
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
+
+
+
+/**
+ * Adds a pitch class to a PitchClassSet by chroma.
+ * @return
+ * The enlarged set.
+ */
+PitchClassSet pc_set_insert(PitchClassSet set, int chroma);
+
+/**
+ * Checks whether a given pitch class is in a PitchClassSet by its chroma.
+ */
+bool pc_set_contains(PitchClassSet set, int chroma);
+
+/**
+ * Frees the memory previously allocated by a passed in PitchClassSet.
+ */
+void pc_set_destroy(PitchClassSet set);
 
 
 
@@ -738,6 +745,45 @@ Pitch snap_diatonic(Pitch p, TonalContext key) {
 
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key) {
     return snap_diatonic(transpose_real(p, (Interval){interval, 0}), key);
+}
+
+typedef struct tnode {
+    int value;
+    struct tnode *left;
+    struct tnode *right;
+} *PitchClassSet;
+
+static struct tnode *create_tnode(int chroma) {
+    struct tnode *node = malloc(sizeof(struct tnode));
+    node->value = chroma;
+    node->left = node->right = NULL;
+    return node;
+}
+
+PitchClassSet pc_set_insert(PitchClassSet set, int chroma) {
+    if (set == NULL)
+        set = create_tnode(chroma);
+    else if (set->value > chroma)
+        set->left = pc_set_insert(set->left, chroma);
+    else if (set->value < chroma)
+        set->right = pc_set_insert(set->right, chroma);
+
+    return set;
+}
+
+bool pc_set_contains(PitchClassSet set, int chroma) {
+    if (set == NULL)
+        return false;
+    return set->value == chroma || pc_set_contains(set->left, chroma) ||
+           pc_set_contains(set->right, chroma);
+}
+
+void pc_set_destroy(PitchClassSet set) {
+    if (set->left)
+        pc_set_destroy(set->left);
+    if (set->right)
+        pc_set_destroy(set->right);
+    free(set);
 }
 #endif // MEANTONAL
 

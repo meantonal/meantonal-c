@@ -20,14 +20,12 @@ int pitch_from_spn(const char *s, Pitch *out);
 Pitch pitch_from_chroma(int chroma, int octave);
 
 /**
- * @brief
  * The number of perfect fifths separating a Pitch from C.
  * Abstracts octave information away.
  */
 static inline int pitch_chroma(Pitch p) { return 2 * p.w - 5 * p.h; }
 
 /**
- * @brief
  * Returns the letter number of a Pitch.
  * To convert to an actual letter, just add 'a' or 'A'.
  */
@@ -36,7 +34,6 @@ static inline int pitch_letter(Pitch p) {
 }
 
 /**
- * @brief
  * 0 is natural.
  * Sharps are positive.
  * Flats are negative.
@@ -47,7 +44,6 @@ static inline int pitch_accidental(Pitch p) {
 }
 
 /**
- * @brief
  * Returns the SPN octave number of a Pitch (C4 is middle C)
  */
 static inline int pitch_octave(Pitch p) {
@@ -55,7 +51,6 @@ static inline int pitch_octave(Pitch p) {
 }
 
 /**
- * @brief
  * Returns the standard MIDI value for a given Pitch.
  */
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
@@ -80,7 +75,6 @@ static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
 }
 
 /**
- * @brief
  * Returns a new Pitch shifted by the given interval.
  * @return
  * Pitch (p + m)
@@ -90,7 +84,6 @@ static inline Pitch transpose_real(Pitch p, Interval m) {
 }
 
 /**
- * @brief
  * Creates a MirrorAxis about which to invert Pitch vectors from two input
  * Pitches that will map to each other.
  */
@@ -99,7 +92,6 @@ static inline MirrorAxis axis_create(Pitch p, Pitch q) {
 }
 
 /**
- * @brief
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
  * strings representing Pitches that will map to each other.
  * @param out
@@ -121,7 +113,6 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 }
 
 /**
- * @brief
  * Inverts a Pitch about a given MirrorAxis
  */
 static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
@@ -129,7 +120,6 @@ static inline Pitch pitch_invert(Pitch p, MirrorAxis a) {
 }
 
 /**
- * @brief
  * Converts from (whole, half) format to (letter, accidental, octave)
  */
 static inline StandardPitch pitch_to_standard(Pitch p) {
@@ -139,7 +129,6 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
 }
 
 /**
- * @brief
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
 Pitch pitch_from_standard(StandardPitch p);

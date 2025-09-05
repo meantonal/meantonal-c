@@ -4,21 +4,21 @@
 #include "pitch.h"
 #include "types.h"
 
-typedef struct {
-    struct tnode *first;
-} PitchClassSet;
+/**
+ * Adds a pitch class to a PitchClassSet by chroma.
+ * @return
+ * The enlarged set.
+ */
+PitchClassSet pc_set_insert(PitchClassSet set, int chroma);
 
 /**
- * Create an empty pitch class set.
- * Note: you are responsible for freeing the resources allocated to create this
- * set.
+ * Checks whether a given pitch class is in a PitchClassSet by its chroma.
  */
-PitchClassSet *pc_set_create(void);
+bool pc_set_contains(PitchClassSet set, int chroma);
 
-void pc_set_destroy(PitchClassSet *set);
-
-void pc_set_insert(PitchClassSet *set, int chroma);
-
-bool pc_set_contains(PitchClassSet *set, int chroma);
+/**
+ * Frees the memory previously allocated by a passed in PitchClassSet.
+ */
+void pc_set_destroy(PitchClassSet set);
 
 #endif

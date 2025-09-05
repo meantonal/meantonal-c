@@ -131,7 +131,7 @@ void test_transpose_diatonic(void) {
     ASSERT_EQ(snap_diatonic(p, k).h, q.h);
 }
 
-void test_key_functions(void) {
+void test_tonality_functions(void) {
     RUN_TESTS(test_context_from_str);
     RUN_TESTS(test_context_from_chroma);
     RUN_TESTS(test_context_from_pitch);

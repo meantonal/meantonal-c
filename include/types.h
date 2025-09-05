@@ -71,6 +71,13 @@ enum Alteration {
 };
 
 /**
+ * Type for constructing arbitrary pitch class sets.
+ * Initialise it to NULL and use pc_set_insert to add pitch classes by chroma.
+ * You are responsible for calling pc_set_destroy to free up resources.
+ */
+typedef struct tnode *PitchClassSet;
+
+/**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */

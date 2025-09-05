@@ -25,7 +25,6 @@ int interval_from_name(const char *s, Interval *out);
 int interval_from_spn(const char *p_str, const char *q_str, Interval *out);
 
 /**
- * @brief
  * Create an interval from two Pitch vectors.
  *
  * @return
@@ -36,14 +35,12 @@ static inline Interval interval_between(Pitch p, Pitch q) {
 }
 
 /**
- * @brief
  * The number of perfect fifths separating an interval from the unison.
  * Abstracts octave information away.
  */
 static inline int interval_chroma(Interval m) { return (2 * m.w) - (5 * m.h); }
 
 /**
- * @brief
  * Check whether two intervals are the same.
  * Enharmonic intervals are not considered the same, use interval_enharmonic().
  */
@@ -63,13 +60,11 @@ static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
 }
 
 /**
- * @brief
  * Get the number of diatonic steps subtended by an Interval.
  */
 static inline int stepspan(Interval m) { return m.w + m.h; }
 
 /**
- * @brief
  * 0 is perfect.
  * 1/-1 are major/minor.
  * 2/-2 are augmente/diminished.
@@ -89,7 +84,6 @@ static inline int interval_quality(Interval m) {
 }
 
 /**
- * @brief
  * Returns the passed in interval with its values negated.
  * An ascending major 3rd becomes a descending major 3rd.
  */
@@ -98,7 +92,6 @@ static inline Interval interval_negate(Interval m) {
 }
 
 /**
- * @brief
  * Returns the sum of two intervals
  * To take the difference, use interval_between((Pitch)m, n)
  * rather than intervals_add(interval_negate(m), n), as it's faster.
@@ -108,7 +101,6 @@ static inline Interval intervals_add(Interval m, Interval n) {
 }
 
 /**
- * @brief
  * Reduces an interval until it is smaller than an octave
  */
 static inline Interval interval_simple(Interval m) {
