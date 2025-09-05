@@ -102,6 +102,35 @@ void test_degree_chroma(void) {
     ASSERT_EQ(degree_chroma(SUBTONIC, k), 4);
 }
 
+void test_snap_diatonic(void) {
+    Pitch p, q;
+    TonalContext k;
+    pitch_from_spn("D#4", &p);
+    pitch_from_spn("D4", &q);
+    context_from_str("C", MINOR, &k);
+    ASSERT_EQ(snap_diatonic(p, k).w, q.w);
+    ASSERT_EQ(snap_diatonic(p, k).h, q.h);
+    pitch_from_spn("Dbbb4", &p);
+    ASSERT_EQ(snap_diatonic(p, k).w, q.w);
+    ASSERT_EQ(snap_diatonic(p, k).h, q.h);
+    context_from_str("C", PHRYGIAN, &k);
+    pitch_from_spn("D4", &p);
+    pitch_from_spn("Db4", &q);
+    ASSERT_EQ(snap_diatonic(p, k).w, q.w);
+    ASSERT_EQ(snap_diatonic(p, k).h, q.h);
+}
+
+void test_transpose_diatonic(void) {
+    Pitch p, q;
+    TonalContext k;
+    pitch_from_spn("D#4", &p);
+    pitch_from_spn("A4", &q);
+    context_from_str("Bb", MAJOR, &k);
+    p = transpose_diatonic(p, 4, k);
+    ASSERT_EQ(snap_diatonic(p, k).w, q.w);
+    ASSERT_EQ(snap_diatonic(p, k).h, q.h);
+}
+
 void test_key_functions(void) {
     RUN_TESTS(test_context_from_str);
     RUN_TESTS(test_context_from_chroma);
@@ -109,4 +138,6 @@ void test_key_functions(void) {
     RUN_TESTS(test_degree_number);
     RUN_TESTS(test_degree_alteration);
     RUN_TESTS(test_degree_chroma);
+    RUN_TESTS(test_snap_diatonic);
+    RUN_TESTS(test_transpose_diatonic);
 }
