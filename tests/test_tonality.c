@@ -13,6 +13,35 @@ void test_context_from_str(void) {
     ASSERT_EQ(k.mode, MAJOR);
 }
 
+void test_context_from_chroma(void) {
+    TonalContext k = context_from_chroma(6, DORIAN);
+    ASSERT_EQ(k.tonic.letter, 5);
+    ASSERT_EQ(k.tonic.accidental, 1);
+    ASSERT_EQ(k.chroma_offset, -3);
+    ASSERT_EQ(k.mode, DORIAN);
+    k = context_from_chroma(5, MAJOR);
+    ASSERT_EQ(k.tonic.letter, 1);
+    ASSERT_EQ(k.tonic.accidental, 0);
+    k = context_from_chroma(-6, MAJOR);
+    ASSERT_EQ(k.tonic.letter, 6);
+    ASSERT_EQ(k.tonic.accidental, -1);
+}
+
+void test_context_from_pitch(void) {
+    Pitch p = {3, 0};
+    TonalContext k = context_from_pitch(p, DORIAN);
+    ASSERT_EQ(k.tonic.letter, 5);
+    ASSERT_EQ(k.tonic.accidental, 1);
+    ASSERT_EQ(k.chroma_offset, -3);
+    ASSERT_EQ(k.mode, DORIAN);
+    p = (Pitch){-3, 0};
+    k = context_from_pitch(p, MAJOR);
+    ASSERT_EQ(k.tonic.letter, 6);
+    ASSERT_EQ(k.tonic.accidental, -1);
+    ASSERT_EQ(k.chroma_offset, 7);
+    ASSERT_EQ(k.mode, MAJOR);
+}
+
 void test_degree_number(void) {
     TonalContext k;
     context_from_str("F#", DORIAN, &k);
@@ -75,6 +104,8 @@ void test_degree_chroma(void) {
 
 void test_key_functions(void) {
     RUN_TESTS(test_context_from_str);
+    RUN_TESTS(test_context_from_chroma);
+    RUN_TESTS(test_context_from_pitch);
     RUN_TESTS(test_degree_number);
     RUN_TESTS(test_degree_alteration);
     RUN_TESTS(test_degree_chroma);

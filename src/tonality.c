@@ -46,8 +46,8 @@ TonalContext context_from_chroma(int chroma, enum Mode mode) {
 
     out.mode = mode;
     out.chroma_offset = mode - chroma;
-    out.tonic.letter = chroma % 7 + 2;
-    out.tonic.accidental = --chroma < 0 ? -chroma / 12 : chroma / 12;
+    out.tonic.letter = (chroma * 4 % 7 + 9) % 7;
+    out.tonic.accidental = ++chroma < 0 ? chroma / 7 - 1 : chroma / 7;
 
     return out;
 }

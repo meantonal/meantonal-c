@@ -46,6 +46,9 @@ typedef struct {
     int chroma_offset; // offset used by internal functions to reconcile notes.
 } TonalContext;
 
+/**
+ * Enum for indicating scale degrees (0-indexed) by their functional names.
+ */
 enum Degree {
     TONIC,
     SUPERTONIC,
@@ -66,11 +69,6 @@ enum Alteration {
     RAISED_DEG,
     FOREIGN_DEG_SHARP
 };
-
-typedef struct {
-    enum Degree degree;
-    enum Alteration alteration;
-} TonalPitch;
 
 /**
  * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
