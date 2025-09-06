@@ -440,6 +440,11 @@ Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
 
 
 /**
+ * Frees the memory previously allocated by a passed in PitchClassSet.
+ */
+void pc_set_destroy(PitchClassSet set);
+
+/**
  * Adds a pitch class to a PitchClassSet by chroma.
  * @return
  * The enlarged set.
@@ -450,11 +455,6 @@ PitchClassSet pc_set_insert(PitchClassSet set, int chroma);
  * Checks whether a given pitch class is in a PitchClassSet by its chroma.
  */
 bool pc_set_contains(PitchClassSet set, int chroma);
-
-/**
- * Frees the memory previously allocated by a passed in PitchClassSet.
- */
-void pc_set_destroy(PitchClassSet set);
 
 
 
@@ -760,6 +760,14 @@ static struct tnode *create_tnode(int chroma) {
     return node;
 }
 
+void pc_set_destroy(PitchClassSet set) {
+    if (set->left)
+        pc_set_destroy(set->left);
+    if (set->right)
+        pc_set_destroy(set->right);
+    free(set);
+}
+
 PitchClassSet pc_set_insert(PitchClassSet set, int chroma) {
     if (set == NULL)
         set = create_tnode(chroma);
@@ -778,12 +786,24 @@ bool pc_set_contains(PitchClassSet set, int chroma) {
            pc_set_contains(set->right, chroma);
 }
 
-void pc_set_destroy(PitchClassSet set) {
-    if (set->left)
-        pc_set_destroy(set->left);
-    if (set->right)
-        pc_set_destroy(set->right);
-    free(set);
+PitchClassSet pc_set_transpose(PitchClassSet set, int offset) {
+    if (set == NULL)
+        return NULL;
+    PitchClassSet new_node = create_tnode(set->value + offset);
+    new_node->left = pc_set_transpose(set->left, offset);
+    new_node->right = pc_set_transpose(set->right, offset);
+
+    return new_node;
+}
+
+PitchClassSet pc_set_invert(PitchClassSet set, int axis) {
+    if (set == NULL)
+        return NULL;
+    PitchClassSet new_node = create_tnode(axis - set->value);
+    new_node->left = pc_set_transpose(set->left, axis);
+    new_node->right = pc_set_transpose(set->right, axis);
+
+    return new_node;
 }
 #endif // MEANTONAL
 
