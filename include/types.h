@@ -12,10 +12,7 @@ typedef struct {
 /**
  * Intervals represent difference vectors between two Pitch vectors.
  */
-typedef struct {
-    int w; // whole steps
-    int h; // half steps
-} Interval;
+typedef Pitch Interval;
 
 /**
  * Enum of modes numbered in descending fifths starting from Lydian = 0.
@@ -98,18 +95,12 @@ typedef struct {
 /**
  * This type is reserved for operations using Map2d matrices.
  */
-typedef struct {
-    int x;
-    int y;
-} MapVec;
+typedef Pitch MapVec;
 
 /**
  * This type is used with functions that invert Pitches about a fixed point.
  */
-typedef struct {
-    int w;
-    int h;
-} MirrorAxis;
+typedef Pitch MirrorAxis;
 
 /**
  * An alternative pitch representation for:

@@ -9,7 +9,7 @@
  * this operation somewhere along the way.
  */
 static inline int map_to_1d(MapVec p, Map1d T) {
-    return T.m0 * p.x + T.m1 * p.y;
+    return T.m0 * p.w + T.m1 * p.h;
 }
 
 /**
@@ -18,8 +18,8 @@ static inline int map_to_1d(MapVec p, Map1d T) {
  * one.
  */
 static inline MapVec map_to_2d(MapVec p, Map2d T) {
-    return (MapVec){.x = T.m00 * p.x + T.m01 * p.y,
-                    .y = T.m10 * p.x + T.m11 * p.y};
+    return (MapVec){.w = T.m00 * p.w + T.m01 * p.h,
+                    .h = T.m10 * p.w + T.m11 * p.h};
 }
 
 #endif
