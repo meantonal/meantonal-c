@@ -19,10 +19,7 @@ typedef struct {
 /**
  * Intervals represent difference vectors between two Pitch vectors.
  */
-typedef struct {
-    int w; // whole steps
-    int h; // half steps
-} Interval;
+typedef Pitch Interval;
 
 /**
  * Enum of modes numbered in descending fifths starting from Lydian = 0.
@@ -105,18 +102,12 @@ typedef struct {
 /**
  * This type is reserved for operations using Map2d matrices.
  */
-typedef struct {
-    int x;
-    int y;
-} MapVec;
+typedef Pitch MapVec;
 
 /**
  * This type is used with functions that invert Pitches about a fixed point.
  */
-typedef struct {
-    int w;
-    int h;
-} MirrorAxis;
+typedef Pitch MirrorAxis;
 
 /**
  * An alternative pitch representation for:
@@ -449,12 +440,41 @@ void pc_set_destroy(PitchClassSet set);
  * @return
  * The enlarged set.
  */
-PitchClassSet pc_set_insert(PitchClassSet set, int chroma);
+void pc_set_insert(PitchClassSet *set, int chroma);
 
 /**
  * Checks whether a given pitch class is in a PitchClassSet by its chroma.
  */
 bool pc_set_contains(PitchClassSet set, int chroma);
+
+/**
+ * Creates a copy of a pitch class set transposed by the specified number of
+ * fifths.
+ */
+PitchClassSet pc_set_transpose(PitchClassSet set, int offset);
+
+/**
+ * Creates a copy of a pitch class set inverted about a given axis. An easy way
+ * to obtain the axis is by creating a MirrorAxis and then taking its chroma.
+ */
+PitchClassSet pc_set_invert(PitchClassSet set, int axis);
+
+/**
+ * Creates a new set that contains the elements of both passed in sets.
+ */
+PitchClassSet pc_set_union(PitchClassSet a, PitchClassSet b);
+
+/**
+ * Creates a new set that contains the common elements shared by the passed in
+ * sets.
+ */
+PitchClassSet pc_set_intersection(PitchClassSet a, PitchClassSet b);
+
+/**
+ * Creates a new set that contains elements in the first set not shared by the
+ * second.
+ */
+PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
 
 
 
@@ -464,7 +484,7 @@ bool pc_set_contains(PitchClassSet set, int chroma);
  * this operation somewhere along the way.
  */
 static inline int map_to_1d(MapVec p, Map1d T) {
-    return T.m0 * p.x + T.m1 * p.y;
+    return T.m0 * p.w + T.m1 * p.h;
 }
 
 /**
@@ -473,8 +493,8 @@ static inline int map_to_1d(MapVec p, Map1d T) {
  * one.
  */
 static inline MapVec map_to_2d(MapVec p, Map2d T) {
-    return (MapVec){.x = T.m00 * p.x + T.m01 * p.y,
-                    .y = T.m10 * p.x + T.m11 * p.y};
+    return (MapVec){.w = T.m00 * p.w + T.m01 * p.h,
+                    .h = T.m10 * p.w + T.m11 * p.h};
 }
 
 #endif // MEANTONAL_HEADER
@@ -768,15 +788,13 @@ void pc_set_destroy(PitchClassSet set) {
     free(set);
 }
 
-PitchClassSet pc_set_insert(PitchClassSet set, int chroma) {
-    if (set == NULL)
-        set = create_tnode(chroma);
-    else if (set->value > chroma)
-        set->left = pc_set_insert(set->left, chroma);
-    else if (set->value < chroma)
-        set->right = pc_set_insert(set->right, chroma);
-
-    return set;
+void pc_set_insert(PitchClassSet *set, int chroma) {
+    if (*set == NULL)
+        *set = create_tnode(chroma);
+    else if ((*set)->value > chroma)
+        pc_set_insert(&(*set)->left, chroma);
+    else if ((*set)->value < chroma)
+        pc_set_insert(&(*set)->right, chroma);
 }
 
 bool pc_set_contains(PitchClassSet set, int chroma) {
@@ -800,10 +818,71 @@ PitchClassSet pc_set_invert(PitchClassSet set, int axis) {
     if (set == NULL)
         return NULL;
     PitchClassSet new_node = create_tnode(axis - set->value);
-    new_node->left = pc_set_transpose(set->left, axis);
-    new_node->right = pc_set_transpose(set->right, axis);
+    new_node->left = pc_set_invert(set->left, axis);
+    new_node->right = pc_set_invert(set->right, axis);
 
     return new_node;
+}
+
+PitchClassSet pc_set_clone(PitchClassSet set) {
+    if (set == NULL)
+        return NULL;
+    PitchClassSet copy = create_tnode(set->value);
+    copy->left = pc_set_clone(set->left);
+    copy->right = pc_set_clone(set->right);
+    return copy;
+}
+
+void pc_set_insert_all(PitchClassSet *dest, PitchClassSet src) {
+    if (src == NULL)
+        return;
+    pc_set_insert(dest, src->value);
+    pc_set_insert_all(dest, src->left);
+    pc_set_insert_all(dest, src->right);
+}
+
+PitchClassSet pc_set_union(PitchClassSet a, PitchClassSet b) {
+    PitchClassSet result = pc_set_clone(a);
+    pc_set_insert_all(&result, b);
+    return result;
+}
+
+PitchClassSet pc_set_intersection(PitchClassSet a, PitchClassSet b) {
+    if (a == NULL || b == NULL)
+        return NULL;
+
+    PitchClassSet result = NULL;
+    if (pc_set_contains(b, a->value))
+        pc_set_insert(&result, a->value);
+
+    PitchClassSet left = pc_set_intersection(a->left, b);
+    PitchClassSet right = pc_set_intersection(a->right, b);
+
+    result = pc_set_union(result, left);
+    result = pc_set_union(result, right);
+
+    return result;
+}
+
+PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b) {
+    if (a == NULL)
+        return NULL;
+
+    PitchClassSet result = NULL;
+
+    if (!pc_set_contains(b, a->value)) {
+        pc_set_insert(&result, a->value);
+    }
+
+    // Recurse left and right
+    PitchClassSet left = pc_set_difference(a->left, b);
+    PitchClassSet right = pc_set_difference(a->right, b);
+
+    // Merge results
+    result = pc_set_union(result, left);
+    result = pc_set_union(result, right);
+
+    return result;
 }
 #endif // MEANTONAL
 
