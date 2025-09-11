@@ -3,7 +3,8 @@
 
 #include "../include/types.h"
 
-extern const Map1d ET7, ET12, ET19, ET31, ET50, ET55;
-extern const Map2d WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
+extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
+    EDO81;
+extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
 #endif

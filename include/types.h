@@ -75,25 +75,25 @@ enum Alteration {
 typedef struct tnode *PitchClassSet;
 
 /**
- * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
+ * The Map1D represents a 1x2 matrix for mapping Pitch vectors down to one
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
     int m0, m1;
-} Map1d;
+} Map1D;
 
 /**
- * The Map2d represents a 2x2 matrix to map from one 2d vector representation to
+ * The Map2D represents a 2x2 matrix to map from one 2D vector representation to
  * another. Useful for changing coordinate basis for rendering alternative
  * isomorphic keyboard layouts.
  */
 typedef struct {
     int m00, m01;
     int m10, m11;
-} Map2d;
+} Map2D;
 
 /**
- * This type is reserved for operations using Map2d matrices.
+ * This type is reserved for operations using Map2D matrices.
  */
 typedef Pitch MapVec;
 
