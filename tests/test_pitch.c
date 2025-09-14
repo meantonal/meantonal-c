@@ -17,6 +17,18 @@ void test_pitch_chroma(void) {
     ASSERT_EQ(pitch_chroma(p), -6);
 }
 
+void test_steps_between(void) {
+    Pitch p;
+    Pitch q;
+    pitch_from_spn("C4", &p);
+    pitch_from_spn("F#4", &q);
+    ASSERT_EQ(steps_between(p, q), 3);
+    pitch_from_spn("Ab3", &q);
+    ASSERT_EQ(steps_between(p, q), -2);
+    pitch_from_spn("C#4", &q);
+    ASSERT_EQ(steps_between(p, q), 0);
+}
+
 void test_pitches_equal(void) {
     Pitch p = {0, 0};
     Pitch q;
@@ -172,6 +184,7 @@ void test_pitch_invert(void) {
 
 void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_chroma);
+    RUN_TESTS(test_steps_between);
     RUN_TESTS(test_pitches_equal);
     RUN_TESTS(test_pitches_enharmonic);
     RUN_TESTS(test_pitch_midi);
