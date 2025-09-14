@@ -12,8 +12,8 @@
  * The most fundamental pitch representation in Meantonal.
  */
 typedef struct {
-    int w; // whole steps
-    int h; // half steps
+        int w; // whole steps
+        int h; // half steps
 } Pitch;
 
 /**
@@ -42,12 +42,13 @@ enum Mode {
  * in a key/mode.
  */
 typedef struct {
-    struct {
-        int letter;
-        int accidental;
-    } tonic;
-    enum Mode mode;
-    int chroma_offset; // offset used by internal functions to reconcile notes.
+        struct {
+                int letter;
+                int accidental;
+        } tonic;
+        enum Mode mode;
+        int chroma_offset; // offset used by internal functions to reconcile
+                           // notes.
 } TonalContext;
 
 /**
@@ -82,27 +83,37 @@ enum Alteration {
 typedef struct tnode *PitchClassSet;
 
 /**
- * The Map1d represents a 1x2 matrix for mapping Pitch vectors down to one
+ * The Map1D represents a 1x2 matrix for mapping Pitch vectors down to one
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
-    int m0, m1;
-} Map1d;
+        int m0, m1;
+} Map1D;
 
 /**
- * The Map2d represents a 2x2 matrix to map from one 2d vector representation to
+ * The Map2D represents a 2x2 matrix to map from one 2D vector representation to
  * another. Useful for changing coordinate basis for rendering alternative
  * isomorphic keyboard layouts.
  */
 typedef struct {
-    int m00, m01;
-    int m10, m11;
-} Map2d;
+        int m00, m01;
+        int m10, m11;
+} Map2D;
 
 /**
- * This type is reserved for operations using Map2d matrices.
+ * This type is reserved for operations using Map2D matrices.
  */
 typedef Pitch MapVec;
+
+/**
+ * The TuningMap type is used to render frequencies, cent values and ratios
+ * from Pitch and Interval vectors.
+ */
+typedef struct {
+        Pitch ref_pitch;
+        double ref_freq;
+        Map1D centmap;
+} TuningMap;
 
 /**
  * This type is used with functions that invert Pitches about a fixed point.
@@ -116,15 +127,16 @@ typedef Pitch MirrorAxis;
  * - Potentially an easier parsing target
  */
 typedef struct {
-    int letter;
-    int accidental;
-    int octave;
+        int letter;
+        int accidental;
+        int octave;
 } StandardPitch;
 
 
 
-extern const Map1d ET7, ET12, ET19, ET31, ET50, ET55;
-extern const Map2d WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
+extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
+    EDO81;
+extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
 
 
@@ -178,6 +190,12 @@ static inline int pitch_octave(Pitch p) {
  * Returns the standard MIDI value for a given Pitch.
  */
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
+
+/**
+ * Returns the 12-tone pitch class of a given Pitch.
+ * C is 0.
+ */
+static inline int pitch_pc12(Pitch p) { return pitch_midi(p) % 12; }
 
 /**
  * Check whether two pitches are the same.
@@ -320,6 +338,11 @@ static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
 static inline int stepspan(Interval m) { return m.w + m.h; }
 
 /**
+ * Get the 12-tone pitch class interval number of an Interval.
+ */
+static inline int interval_pc12(Interval m) { return (2 * m.w + m.h) % 12; }
+
+/**
  * 0 is perfect.
  * 1/-1 are major/minor.
  * 2/-2 are augmente/diminished.
@@ -347,12 +370,17 @@ static inline Interval interval_negate(Interval m) {
 }
 
 /**
- * Returns the sum of two intervals
- * To take the difference, use interval_between((Pitch)m, n)
- * rather than intervals_add(interval_negate(m), n), as it's faster.
+ * Returns the sum of two intervals.
  */
 static inline Interval intervals_add(Interval m, Interval n) {
     return (Interval){.w = m.w + n.w, .h = m.h + n.h};
+}
+
+/**
+ * Returns the difference of two intervals.
+ */
+static inline Interval intervals_subtract(Interval m, Interval n) {
+    return (Interval){.w = m.w - n.w, .h = m.h - n.h};
 }
 
 /**
@@ -483,19 +511,71 @@ PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
  * Most built-in functions that take Pitches and return integers perform
  * this operation somewhere along the way.
  */
-static inline int map_to_1d(MapVec p, Map1d T) {
-    return T.m0 * p.w + T.m1 * p.h;
+static inline int map_to_1d(MapVec v, Map1D T) {
+    return T.m0 * v.w + T.m1 * v.h;
 }
 
 /**
- * Maps to a 2d MapVec type using a 2x2 matrix.
+ * Composes a Map1D with a Map2D to create a single Map1D operation.
+ * Useful for avoiding unneccesary repeated computation.
+ */
+static inline Map1D map_compose_1d_2d(Map1D A, Map2D B) {
+    return (Map1D){.m0 = A.m0 * B.m00 + A.m1 * B.m10,
+                   .m1 = A.m0 * B.m01 + A.m1 * B.m11};
+}
+
+/**
+ * Maps to a 2D MapVec type using a 2x2 matrix.
  * You must cast the result to a Pitch or Interval if you intend to use it as
  * one.
  */
-static inline MapVec map_to_2d(MapVec p, Map2d T) {
-    return (MapVec){.w = T.m00 * p.w + T.m01 * p.h,
-                    .h = T.m10 * p.w + T.m11 * p.h};
+static inline MapVec map_to_2d(MapVec v, Map2D T) {
+    return (MapVec){.w = T.m00 * v.w + T.m01 * v.h,
+                    .h = T.m10 * v.w + T.m11 * v.h};
 }
+
+/**
+ * Composes a Map2D with another Map2D to create a single Map2D composite.
+ * Useful for avoiding unnecessary repeated computation.
+ */
+static inline Map2D map_compose_2d_2d(Map2D A, Map2D B) {
+    return (Map2D){.m00 = A.m00 * B.m00 + A.m01 * B.m10,
+                   .m01 = A.m00 * B.m01 + A.m01 * B.m11,
+                   .m10 = A.m10 * B.m00 + A.m11 * B.m10,
+                   .m11 = A.m10 * B.m01 + A.m11 * B.m11};
+}
+
+/**
+ * Creates a TuningMap from the width of the perfect fifth in cents in the
+ * target tuning system.
+ * Also required a reference Pitch and frequency for that Pitch.
+ */
+TuningMap tuning_map_from_fifth(double fifth, Pitch ref_pitch, double ref_freq);
+
+/**
+ * Creates a TuningMap for an EDO tuning system from the number of parts the
+ * octave is to be divided into.
+ * Also required a reference Pitch and frequency for that Pitch.
+ */
+TuningMap tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq);
+
+/**
+ * Returns the frequency of a Pitch when rendered in the tuning system defined
+ * by the passed-in TuningMap.
+ */
+double to_hz(Pitch p, TuningMap T);
+
+/**
+ * Returns the ratio of an Interval when rendered in the tuning system defined
+ * by the passed_in TuningMap.
+ */
+double to_ratio(Interval m, TuningMap T);
+
+/**
+ * Returns the size on an Interval in cents when rendered in the tuning system
+ * defined by the passed-in TuningMap.
+ */
+double to_cents(Interval m, TuningMap T);
 
 #endif // MEANTONAL_HEADER
 
@@ -506,18 +586,22 @@ static inline MapVec map_to_2d(MapVec p, Map2d T) {
 #ifdef MEANTONAL
 #undef MEANTONAL
 
-const Map1d ET7 = {1, 1};
-const Map1d ET12 = {2, 1};
-const Map1d ET19 = {3, 2};
-const Map1d ET31 = {5, 3};
-const Map1d ET50 = {5, 3};
-const Map1d ET55 = {5, 4};
+const Map1D EDO7 = {1, 1};
+const Map1D EDO12 = {2, 1};
+const Map1D EDO17 = {3, 1};
+const Map1D EDO19 = {3, 2};
+const Map1D EDO22 = {4, 1};
+const Map1D EDO31 = {5, 3};
+const Map1D EDO50 = {5, 3};
+const Map1D EDO53 = {9, 4};
+const Map1D EDO55 = {5, 4};
+const Map1D EDO81 = {13, 8};
 
-const Map2d WICKI_TO = {1, -3, 0, 1};
-const Map2d WICKI_FROM = {1, 3, 0, 1};
+const Map2D WICKI_TO = {1, -3, 0, 1};
+const Map2D WICKI_FROM = {1, 3, 0, 1};
 
-const Map2d GENERATORS_TO = {2, -5, -1, 3};
-const Map2d GENERATORS_FROM = {3, 5, 1, 2};
+const Map2D GENERATORS_TO = {2, -5, -1, 3};
+const Map2D GENERATORS_FROM = {3, 5, 1, 2};
 
 static const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},

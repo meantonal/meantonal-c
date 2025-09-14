@@ -8,8 +8,17 @@
  * Most built-in functions that take Pitches and return integers perform
  * this operation somewhere along the way.
  */
-static inline int map_to_1d(MapVec p, Map1D T) {
-    return T.m0 * p.w + T.m1 * p.h;
+static inline double map_to_1d(MapVec v, Map1D T) {
+    return T.m0 * v.x + T.m1 * v.y;
+}
+
+/**
+ * Composes a Map1D with a Map2D to create a single Map1D operation.
+ * Useful for avoiding unneccesary repeated computation.
+ */
+static inline Map1D map_compose_1d_2d(Map1D A, Map2D B) {
+    return (Map1D){.m0 = A.m0 * B.m00 + A.m1 * B.m10,
+                   .m1 = A.m0 * B.m01 + A.m1 * B.m11};
 }
 
 /**
@@ -17,9 +26,52 @@ static inline int map_to_1d(MapVec p, Map1D T) {
  * You must cast the result to a Pitch or Interval if you intend to use it as
  * one.
  */
-static inline MapVec map_to_2d(MapVec p, Map2D T) {
-    return (MapVec){.w = T.m00 * p.w + T.m01 * p.h,
-                    .h = T.m10 * p.w + T.m11 * p.h};
+static inline MapVec map_to_2d(MapVec v, Map2D T) {
+    return (MapVec){.x = T.m00 * v.x + T.m01 * v.y,
+                    .y = T.m10 * v.x + T.m11 * v.y};
 }
+
+/**
+ * Composes a Map2D with another Map2D to create a single Map2D composite.
+ * Useful for avoiding unnecessary repeated computation.
+ */
+static inline Map2D map_compose_2d_2d(Map2D A, Map2D B) {
+    return (Map2D){.m00 = A.m00 * B.m00 + A.m01 * B.m10,
+                   .m01 = A.m00 * B.m01 + A.m01 * B.m11,
+                   .m10 = A.m10 * B.m00 + A.m11 * B.m10,
+                   .m11 = A.m10 * B.m01 + A.m11 * B.m11};
+}
+
+/**
+ * Creates a TuningMap from the width of the perfect fifth in cents in the
+ * target tuning system.
+ * Also required a reference Pitch and frequency for that Pitch.
+ */
+TuningMap tuning_map_from_fifth(double fifth, Pitch ref_pitch, double ref_freq);
+
+/**
+ * Creates a TuningMap for an EDO tuning system from the number of parts the
+ * octave is to be divided into.
+ * Also required a reference Pitch and frequency for that Pitch.
+ */
+TuningMap tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq);
+
+/**
+ * Returns the frequency of a Pitch when rendered in the tuning system defined
+ * by the passed-in TuningMap.
+ */
+double to_hz(Pitch p, TuningMap T);
+
+/**
+ * Returns the ratio of an Interval when rendered in the tuning system defined
+ * by the passed_in TuningMap.
+ */
+double to_ratio(Interval m, TuningMap T);
+
+/**
+ * Returns the size on an Interval in cents when rendered in the tuning system
+ * defined by the passed-in TuningMap.
+ */
+double to_cents(Interval m, TuningMap T);
 
 #endif

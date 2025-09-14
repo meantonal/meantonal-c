@@ -56,6 +56,12 @@ static inline int pitch_octave(Pitch p) {
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
 
 /**
+ * Returns the 12-tone pitch class of a given Pitch.
+ * C is 0.
+ */
+static inline int pitch_pc12(Pitch p) { return pitch_midi(p) % 12; }
+
+/**
  * Check whether two pitches are the same.
  * Enharmonic pitches are not considered the same, use pitch_enharmonic().
  */

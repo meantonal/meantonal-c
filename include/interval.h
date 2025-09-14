@@ -65,6 +65,11 @@ static inline bool intervals_enharmonic(Interval m, Interval n, int edo) {
 static inline int stepspan(Interval m) { return m.w + m.h; }
 
 /**
+ * Get the 12-tone pitch class interval number of an Interval.
+ */
+static inline int interval_pc12(Interval m) { return (2 * m.w + m.h) % 12; }
+
+/**
  * 0 is perfect.
  * 1/-1 are major/minor.
  * 2/-2 are augmente/diminished.
@@ -92,12 +97,17 @@ static inline Interval interval_negate(Interval m) {
 }
 
 /**
- * Returns the sum of two intervals
- * To take the difference, use interval_between((Pitch)m, n)
- * rather than intervals_add(interval_negate(m), n), as it's faster.
+ * Returns the sum of two intervals.
  */
 static inline Interval intervals_add(Interval m, Interval n) {
     return (Interval){.w = m.w + n.w, .h = m.h + n.h};
+}
+
+/**
+ * Returns the difference of two intervals.
+ */
+static inline Interval intervals_subtract(Interval m, Interval n) {
+    return (Interval){.w = m.w - n.w, .h = m.h - n.h};
 }
 
 /**
