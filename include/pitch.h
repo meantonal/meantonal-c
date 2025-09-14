@@ -62,6 +62,13 @@ static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
 static inline int pitch_pc12(Pitch p) { return pitch_midi(p) % 12; }
 
 /**
+ * Returns the (signed) distance in diatonic steps between two Pitch vectors.
+ */
+static inline int steps_between(Pitch p, Pitch q) {
+    return (q.w + q.h) - (p.w + p.h);
+}
+
+/**
  * Check whether two pitches are the same.
  * Enharmonic pitches are not considered the same, use pitch_enharmonic().
  */
