@@ -280,3 +280,61 @@ void pitch_lily(Pitch p, char *out) {
         }
     }
 }
+
+void pitch_helmholtz(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p);
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+    int octave = pitch_octave(p) - 3;
+    if (octave > 6)
+        octave = 6;
+    if (octave < 0) {
+        octave++;
+        letter += 'A';
+    } else
+        letter += 'a';
+    if (octave < -6)
+        octave = -6;
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    switch (accidental) {
+    case 2:
+        pos += snprintf(out + pos, cap - pos, "x");
+        break;
+    case 1:
+        pos += snprintf(out + pos, cap - pos, "#");
+        break;
+    case 0:
+        break;
+    case -1:
+        pos += snprintf(out + pos, cap - pos, "b");
+        break;
+    case -2:
+        pos += snprintf(out + pos, cap - pos, "bb");
+        break;
+    default:
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+        } else {
+            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+        }
+        break;
+    }
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}
