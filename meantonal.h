@@ -172,6 +172,15 @@ int pitch_from_lily(const char *s, Pitch *out);
 int pitch_from_helmholtz(const char *s, Pitch *out);
 
 /**
+ * Parses an ABC note name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_abc(const char *s, Pitch *out);
+
+/**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
  * 5ths) and octave (following SPN octave numbering).
  */
@@ -779,6 +788,54 @@ int pitch_from_helmholtz(const char *s, Pitch *out) {
     }
     out->w += acc;
     out->h -= acc;
+
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
+int pitch_from_abc(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int acc = 0;
+    while (*p == '^' || *p == '=' || *p == '_') {
+        switch (*p) {
+        case '^':
+            acc++;
+            break;
+        case '_':
+            acc--;
+            break;
+        }
+        p++;
+    }
+    out->w = acc;
+    out->h = -acc;
+
+    int letter;
+    int oct = 6;
+    if (*p >= 'A' && *p <= 'G') {
+        letter = *p++ - 'A';
+        oct--;
+    } else if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w += letters[letter].w;
+    out->h += letters[letter].h;
 
     while (*p == '\'' || *p == ',') {
         switch (*p) {
