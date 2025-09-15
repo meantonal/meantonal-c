@@ -55,6 +55,54 @@ int pitch_from_spn(const char *s, Pitch *out) {
     return 0;
 }
 
+int pitch_from_lily(const char *s, Pitch *out) {
+    const char *p = s;
+
+    // 1. letter name
+    int letter;
+    if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    // 2. accidental
+    int acc = 0;
+    while (*p == 'i' || *p == 'e') {
+        switch (*p) {
+        case 'i':
+            acc++;
+            break;
+        case 'e':
+            acc--;
+            break;
+        }
+        p += 2;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    int oct = 4;
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
 Pitch pitch_from_chroma(int chroma, int octave) {
     Pitch p = {0, 0};
     p.w += chroma * 3;

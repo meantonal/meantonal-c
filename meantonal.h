@@ -87,7 +87,7 @@ typedef struct tnode *PitchClassSet;
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
-        int m0, m1;
+        double m0, m1;
 } Map1D;
 
 /**
@@ -96,14 +96,16 @@ typedef struct {
  * isomorphic keyboard layouts.
  */
 typedef struct {
-        int m00, m01;
-        int m10, m11;
+        double m00, m01;
+        double m10, m11;
 } Map2D;
 
 /**
  * This type is reserved for operations using Map2D matrices.
  */
-typedef Pitch MapVec;
+typedef struct {
+        double x, y;
+} MapVec;
 
 /**
  * The TuningMap type is used to render frequencies, cent values and ratios
@@ -138,6 +140,8 @@ extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
     EDO81;
 extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
+extern const double CONCERT_C4;
+
 
 
 /**
@@ -148,6 +152,15 @@ extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
  * 0 means nothing went wrong.
  */
 int pitch_from_spn(const char *s, Pitch *out);
+
+/**
+ * Parses a LilyPond pitch name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_lily(const char *s, Pitch *out);
 
 /**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
@@ -187,6 +200,13 @@ static inline int pitch_octave(Pitch p) {
 }
 
 /**
+ * Returns the SPN name of a Pitch as a string.
+ * You must pass a char buf[8] to store the result, which is returned via an
+ * out-param.
+ */
+void pitch_spn(Pitch p, char *out);
+
+/**
  * Returns the standard MIDI value for a given Pitch.
  */
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
@@ -196,6 +216,13 @@ static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }
  * C is 0.
  */
 static inline int pitch_pc12(Pitch p) { return pitch_midi(p) % 12; }
+
+/**
+ * Returns the (signed) distance in diatonic steps between two Pitch vectors.
+ */
+static inline int steps_between(Pitch p, Pitch q) {
+    return (q.w + q.h) - (p.w + p.h);
+}
 
 /**
  * Check whether two pitches are the same.
@@ -362,6 +389,13 @@ static inline int interval_quality(Interval m) {
 }
 
 /**
+ * Returns the standard name of an interval as a string.
+ * You must pass a char buf[8] to store the result, which is returned via an
+ * out-param.
+ */
+void interval_name(Interval m, char *out);
+
+/**
  * Returns the passed in interval with its values negated.
  * An ascending major 3rd becomes a descending major 3rd.
  */
@@ -511,8 +545,8 @@ PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
  * Most built-in functions that take Pitches and return integers perform
  * this operation somewhere along the way.
  */
-static inline int map_to_1d(MapVec v, Map1D T) {
-    return T.m0 * v.w + T.m1 * v.h;
+static inline double map_to_1d(MapVec v, Map1D T) {
+    return T.m0 * v.x + T.m1 * v.y;
 }
 
 /**
@@ -530,8 +564,8 @@ static inline Map1D map_compose_1d_2d(Map1D A, Map2D B) {
  * one.
  */
 static inline MapVec map_to_2d(MapVec v, Map2D T) {
-    return (MapVec){.w = T.m00 * v.w + T.m01 * v.h,
-                    .h = T.m10 * v.w + T.m11 * v.h};
+    return (MapVec){.x = T.m00 * v.x + T.m01 * v.y,
+                    .y = T.m10 * v.x + T.m11 * v.y};
 }
 
 /**
@@ -603,6 +637,8 @@ const Map2D WICKI_FROM = {1, 3, 0, 1};
 const Map2D GENERATORS_TO = {2, -5, -1, 3};
 const Map2D GENERATORS_FROM = {3, 5, 1, 2};
 
+const double CONCERT_C4 = 261.6255653005986;
+
 static const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
 };
@@ -656,6 +692,54 @@ int pitch_from_spn(const char *s, Pitch *out) {
     return 0;
 }
 
+int pitch_from_lily(const char *s, Pitch *out) {
+    const char *p = s;
+
+    // 1. letter name
+    int letter;
+    if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    // 2. accidental
+    int acc = 0;
+    while (*p == 'i' || *p == 'e') {
+        switch (*p) {
+        case 'i':
+            acc++;
+            break;
+        case 'e':
+            acc--;
+            break;
+        }
+        p += 2;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    int oct = 4;
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
 Pitch pitch_from_chroma(int chroma, int octave) {
     Pitch p = {0, 0};
     p.w += chroma * 3;
@@ -676,6 +760,42 @@ Pitch pitch_from_standard(StandardPitch p) {
         .w = letters[p.letter].w + 5 * p.octave + p.accidental,
         .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
+}
+
+void pitch_spn(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 8;
+
+    char letter = pitch_letter(p) + 'A';
+    int accidental = pitch_accidental(p);
+    int octave = pitch_octave(p);
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    switch (accidental) {
+    case 2:
+        pos += snprintf(out + pos, cap - pos, "x");
+        break;
+    case 1:
+        pos += snprintf(out + pos, cap - pos, "#");
+        break;
+    case 0:
+        break;
+    case -1:
+        pos += snprintf(out + pos, cap - pos, "b");
+        break;
+    case -2:
+        pos += snprintf(out + pos, cap - pos, "bb");
+        break;
+    default:
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+        } else {
+            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+        }
+        break;
+    }
+    pos += snprintf(out + pos, cap - pos, "%d", octave);
 }
 
 static const Interval major_ints[7] = {
@@ -756,6 +876,21 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
     out->w = q.w - p.w;
     out->h = q.h - p.h;
     return 0;
+}
+
+void interval_name(Interval m, char *out) {
+    size_t cap = 8;
+
+    static const char qualities[5] = {'d', 'm', 'P', 'M', 'A'};
+    int8_t quality = interval_quality(m);
+    int8_t generic_size = stepspan(m) + 1;
+    if (quality <= 2 && quality >= -2) {
+        snprintf(out, cap, "%c%hhd", qualities[quality + 2], generic_size);
+    } else if (quality > 0) {
+        snprintf(out, cap, "%dA%hhd", quality - 1, generic_size);
+    } else {
+        snprintf(out, cap, "%hhdd%hhd", -quality - 1, generic_size);
+    }
 }
 
 int context_from_str(char *s, enum Mode mode, TonalContext *out) {

@@ -14,6 +14,15 @@
 int pitch_from_spn(const char *s, Pitch *out);
 
 /**
+ * Parses a LilyPond pitch name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_lily(const char *s, Pitch *out);
+
+/**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
  * 5ths) and octave (following SPN octave numbering).
  */
