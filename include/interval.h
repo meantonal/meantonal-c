@@ -89,6 +89,13 @@ static inline int interval_quality(Interval m) {
 }
 
 /**
+ * Returns the standard name of an interval as a string.
+ * You must pass a char buf[8] to store the result, which is returned via an
+ * out-param.
+ */
+void interval_name(Interval m, char *out);
+
+/**
  * Returns the passed in interval with its values negated.
  * An ascending major 3rd becomes a descending major 3rd.
  */
