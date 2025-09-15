@@ -86,35 +86,18 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
 void interval_name(Interval m, char *out) {
     size_t pos = 0;
     size_t cap = 8;
-    //
-    int quality = interval_quality(m);
-    switch (quality) {
-    case 2:
-        pos += snprintf(out + pos, cap - pos, "A");
-        break;
-    case 1:
-        pos += snprintf(out + pos, cap - pos, "M");
-        break;
-    case 0:
-        pos += snprintf(out + pos, cap - pos, "P");
-        break;
-    case -1:
-        pos += snprintf(out + pos, cap - pos, "m");
-        break;
-    case -2:
-        pos += snprintf(out + pos, cap - pos, "d");
-        break;
-    default:
-        if (quality > 0) {
-            pos += snprintf(out + pos, cap - pos, "%d", quality - 1);
-            pos += snprintf(out + pos, cap - pos, "A");
-        } else {
-            pos += snprintf(out + pos, cap - pos, "%d", -quality - 1);
-            pos += snprintf(out + pos, cap - pos, "d");
-        }
-        break;
-    }
 
+    static const char qualities[5] = {'d', 'm', 'P', 'M', 'A'};
+    int quality = interval_quality(m);
     int generic_size = stepspan(m) + 1;
-    pos += snprintf(out + pos, cap - pos, "%d", generic_size);
+    if (quality <= 2 && quality >= -2) {
+        pos += snprintf(out + pos, cap - pos, "%c%d", qualities[quality + 2],
+                        generic_size);
+    } else if (quality > 0) {
+        pos +=
+            snprintf(out + pos, cap - pos, "%dA%d", quality - 1, generic_size);
+    } else {
+        pos +=
+            snprintf(out + pos, cap - pos, "%dd%d", -quality - 1, generic_size);
+    }
 }
