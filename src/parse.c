@@ -242,3 +242,41 @@ void pitch_spn(Pitch p, char *out) {
     }
     pos += snprintf(out + pos, cap - pos, "%d", octave);
 }
+
+void pitch_lily(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p) + 'a';
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+    int octave = pitch_octave(p) - 3;
+    if (octave > 6)
+        octave = 6;
+    if (octave < -6)
+        octave = -6;
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+    while (accidental) {
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "is");
+            accidental--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, "es");
+            accidental++;
+        }
+    }
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}

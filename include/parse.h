@@ -44,6 +44,15 @@ int pitch_from_abc(const char *s, Pitch *out);
 void pitch_spn(Pitch p, char *out);
 
 /**
+ * Returns the LilyPond note name of a Pitch as a string.
+ * You must pass a char buf[16] to store the result, which is returned via an
+ * out-param.
+ * Will truncate anything past C-1 and B9, and accidentals more remote than
+ * quadruple sharps/flats.
+ */
+void pitch_lily(Pitch p, char *out);
+
+/**
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
  * strings representing Pitches that will map to each other.
  * @param out
