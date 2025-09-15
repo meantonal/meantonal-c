@@ -291,6 +291,7 @@ void pitch_helmholtz(Pitch p, char *out) {
         accidental = 4;
     if (accidental < -4)
         accidental = -4;
+
     int octave = pitch_octave(p) - 3;
     if (octave > 6)
         octave = 6;
@@ -327,6 +328,51 @@ void pitch_helmholtz(Pitch p, char *out) {
         }
         break;
     }
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}
+
+void pitch_abc(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p);
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+
+    int octave = pitch_octave(p) - 5;
+    if (octave > 6)
+        octave = 6;
+    if (octave < 0) {
+        octave++;
+        letter += 'A';
+    } else
+        letter += 'a';
+    if (octave < -6)
+        octave = -6;
+
+    while (accidental) {
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "^");
+            accidental--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, "_");
+            accidental++;
+        }
+    }
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
 
     while (octave) {
         if (octave > 0) {

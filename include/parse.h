@@ -47,8 +47,8 @@ void pitch_spn(Pitch p, char *out);
  * Returns the LilyPond note name of a Pitch as a string.
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
- * Will truncate anything past C-1 and B9, and accidentals more remote than
- * quadruple sharps/flats.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
  */
 void pitch_lily(Pitch p, char *out);
 
@@ -56,10 +56,19 @@ void pitch_lily(Pitch p, char *out);
  * Returns the Helmholtz note name of a Pitch as a string.
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
- * Will truncate anything past C-1 and B9, and accidentals more remote than
- * quadruple sharps/flats.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
  */
 void pitch_helmholtz(Pitch p, char *out);
+
+/**
+ * Returns the ABC note name of a Pitch as a string.
+ * You must pass a char buf[16] to store the result, which is returned via an
+ * out-param.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
+ */
+void pitch_abc(Pitch p, char *out);
 
 /**
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
