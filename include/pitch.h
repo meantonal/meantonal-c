@@ -51,6 +51,13 @@ static inline int pitch_octave(Pitch p) {
 }
 
 /**
+ * Returns the SPN name of a Pitch as a string.
+ * You must pass a char buf[8] to store the result, which is returned via an
+ * out-param.
+ */
+void pitch_spn(Pitch p, char *out);
+
+/**
  * Returns the standard MIDI value for a given Pitch.
  */
 static inline int pitch_midi(Pitch p) { return 2 * p.w + p.h; }

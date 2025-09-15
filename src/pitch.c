@@ -1,4 +1,5 @@
 #include "../include/pitch.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 static const Pitch letters[7] = {
@@ -74,4 +75,40 @@ Pitch pitch_from_standard(StandardPitch p) {
         .w = letters[p.letter].w + 5 * p.octave + p.accidental,
         .h = letters[p.letter].h + 2 * p.octave - p.accidental,
     };
+}
+
+void pitch_spn(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 8;
+
+    char letter = pitch_letter(p) + 'A';
+    int accidental = pitch_accidental(p);
+    int octave = pitch_octave(p);
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    switch (accidental) {
+    case 2:
+        pos += snprintf(out + pos, cap - pos, "x");
+        break;
+    case 1:
+        pos += snprintf(out + pos, cap - pos, "#");
+        break;
+    case 0:
+        break;
+    case -1:
+        pos += snprintf(out + pos, cap - pos, "b");
+        break;
+    case -2:
+        pos += snprintf(out + pos, cap - pos, "bb");
+        break;
+    default:
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+        } else {
+            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+        }
+        break;
+    }
+    pos += snprintf(out + pos, cap - pos, "%d", octave);
 }

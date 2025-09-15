@@ -1,5 +1,6 @@
 #include "../include/interval.h"
 #include "../include/pitch.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -84,20 +85,16 @@ int interval_from_spn(const char *p_str, const char *q_str, Interval *out) {
 }
 
 void interval_name(Interval m, char *out) {
-    size_t pos = 0;
     size_t cap = 8;
 
     static const char qualities[5] = {'d', 'm', 'P', 'M', 'A'};
-    int quality = interval_quality(m);
-    int generic_size = stepspan(m) + 1;
+    int8_t quality = interval_quality(m);
+    int8_t generic_size = stepspan(m) + 1;
     if (quality <= 2 && quality >= -2) {
-        pos += snprintf(out + pos, cap - pos, "%c%d", qualities[quality + 2],
-                        generic_size);
+        snprintf(out, cap, "%c%hhd", qualities[quality + 2], generic_size);
     } else if (quality > 0) {
-        pos +=
-            snprintf(out + pos, cap - pos, "%dA%d", quality - 1, generic_size);
+        snprintf(out, cap, "%dA%hhd", quality - 1, generic_size);
     } else {
-        pos +=
-            snprintf(out + pos, cap - pos, "%dd%d", -quality - 1, generic_size);
+        snprintf(out, cap, "%hhdd%hhd", -quality - 1, generic_size);
     }
 }
