@@ -163,6 +163,15 @@ int pitch_from_spn(const char *s, Pitch *out);
 int pitch_from_lily(const char *s, Pitch *out);
 
 /**
+ * Parses a Helmholtz pitch name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_helmholtz(const char *s, Pitch *out);
+
+/**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
  * 5ths) and octave (following SPN octave numbering).
  */
@@ -646,7 +655,6 @@ static const Pitch letters[7] = {
 int pitch_from_spn(const char *s, Pitch *out) {
     const char *p = s;
 
-    // 1. letter name
     int letter;
     if (*p >= 'A' && *p <= 'G') {
         letter = *p++ - 'A';
@@ -658,7 +666,6 @@ int pitch_from_spn(const char *s, Pitch *out) {
     out->w = letters[letter].w;
     out->h = letters[letter].h;
 
-    // 2. accidental
     int acc = 0;
     while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
         switch (*p) {
@@ -680,7 +687,6 @@ int pitch_from_spn(const char *s, Pitch *out) {
     out->w += acc;
     out->h -= acc;
 
-    // 3. octave (can be negative, multi-digit)
     char *end;
     long oct = strtol(p, &end, 10) + 1;
     if (end == p) {
@@ -695,7 +701,6 @@ int pitch_from_spn(const char *s, Pitch *out) {
 int pitch_from_lily(const char *s, Pitch *out) {
     const char *p = s;
 
-    // 1. letter name
     int letter;
     if (*p >= 'a' && *p <= 'g') {
         letter = *p++ - 'a';
@@ -705,7 +710,6 @@ int pitch_from_lily(const char *s, Pitch *out) {
     out->w = letters[letter].w;
     out->h = letters[letter].h;
 
-    // 2. accidental
     int acc = 0;
     while (*p == 'i' || *p == 'e') {
         switch (*p) {
@@ -733,7 +737,60 @@ int pitch_from_lily(const char *s, Pitch *out) {
         }
         p++;
     }
+    out->w += oct * 5;
+    out->h += oct * 2;
 
+    return 0;
+}
+
+int pitch_from_helmholtz(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int letter;
+    int oct = 4;
+    if (*p >= 'A' && *p <= 'G') {
+        letter = *p++ - 'A';
+        oct--;
+    } else if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    int acc = 0;
+    while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
+        switch (*p) {
+        case '#':
+            acc++;
+            break;
+        case 'b':
+            acc--;
+            break;
+        case 'x':
+            acc += 2;
+            break;
+        case 'w':
+            acc -= 2;
+            break;
+        }
+        p++;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
     out->w += oct * 5;
     out->h += oct * 2;
 

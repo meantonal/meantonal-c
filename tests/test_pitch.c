@@ -204,6 +204,28 @@ void test_pitch_from_lily(void) {
     ASSERT_EQ(p.h, 12);
 }
 
+void test_pitch_from_helmholtz(void) {
+    Pitch p;
+    pitch_from_helmholtz("C,,,", &p);
+    ASSERT_EQ(p.w, 0);
+    ASSERT_EQ(p.h, 0);
+    pitch_from_helmholtz("C,,", &p);
+    ASSERT_EQ(p.w, 5);
+    ASSERT_EQ(p.h, 2);
+    pitch_from_helmholtz("c'", &p);
+    ASSERT_EQ(p.w, 25);
+    ASSERT_EQ(p.h, 10);
+    pitch_from_helmholtz("c#'", &p);
+    ASSERT_EQ(p.w, 26);
+    ASSERT_EQ(p.h, 9);
+    pitch_from_helmholtz("cb'", &p);
+    ASSERT_EQ(p.w, 24);
+    ASSERT_EQ(p.h, 11);
+    pitch_from_helmholtz("dbb'", &p);
+    ASSERT_EQ(p.w, 24);
+    ASSERT_EQ(p.h, 12);
+}
+
 void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_chroma);
     RUN_TESTS(test_steps_between);
@@ -216,7 +238,8 @@ void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_to_standard);
     RUN_TESTS(test_pitch_from_standard);
     RUN_TESTS(test_pitch_from_spn);
+    RUN_TESTS(test_pitch_from_lily);
+    RUN_TESTS(test_pitch_from_helmholtz);
     RUN_TESTS(test_pitch_from_chroma);
     RUN_TESTS(test_pitch_invert);
-    RUN_TESTS(test_pitch_from_lily);
 }
