@@ -145,42 +145,6 @@ extern const double CONCERT_C4;
 
 
 /**
- * Parses Scientific Pitch Notation to generate a pitch.
- * @param out
- * Pointer to a Pitch to store the parsed vector.
- * @return
- * 0 means nothing went wrong.
- */
-int pitch_from_spn(const char *s, Pitch *out);
-
-/**
- * Parses a LilyPond pitch name to generate a pitch.
- * @param out
- * Pointer to a Pitch to store the parsed vector.
- * @return
- * 0 means nothing went wrong.
- */
-int pitch_from_lily(const char *s, Pitch *out);
-
-/**
- * Parses a Helmholtz pitch name to generate a pitch.
- * @param out
- * Pointer to a Pitch to store the parsed vector.
- * @return
- * 0 means nothing went wrong.
- */
-int pitch_from_helmholtz(const char *s, Pitch *out);
-
-/**
- * Parses an ABC note name to generate a pitch.
- * @param out
- * Pointer to a Pitch to store the parsed vector.
- * @return
- * 0 means nothing went wrong.
- */
-int pitch_from_abc(const char *s, Pitch *out);
-
-/**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
  * 5ths) and octave (following SPN octave numbering).
  */
@@ -216,13 +180,6 @@ static inline int pitch_accidental(Pitch p) {
 static inline int pitch_octave(Pitch p) {
     return p.w + p.h < 0 ? (p.w + p.h) / 7 - 2 : (p.w + p.h) / 7 - 1;
 }
-
-/**
- * Returns the SPN name of a Pitch as a string.
- * You must pass a char buf[8] to store the result, which is returned via an
- * out-param.
- */
-void pitch_spn(Pitch p, char *out);
 
 /**
  * Returns the standard MIDI value for a given Pitch.
@@ -276,27 +233,6 @@ static inline Pitch transpose_real(Pitch p, Interval m) {
  */
 static inline MirrorAxis axis_create(Pitch p, Pitch q) {
     return (MirrorAxis){.w = p.w + q.w, .h = p.h + q.h};
-}
-
-/**
- * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
- * strings representing Pitches that will map to each other.
- * @param out
- * Pointer to a MirrorAxis to store the resulting axis.
- * @return
- * 0 means nothing went wrong.
- */
-static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
-    Pitch p, q;
-
-    if (pitch_from_spn(p_str, &p))
-        return 1;
-    if (pitch_from_spn(q_str, &q))
-        return 1;
-
-    out->w = p.w + q.w;
-    out->h = p.h + q.h;
-    return 0;
 }
 
 /**
@@ -629,6 +565,70 @@ double to_ratio(Interval m, TuningMap T);
  */
 double to_cents(Interval m, TuningMap T);
 
+
+/**
+ * Parses Scientific Pitch Notation to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_spn(const char *s, Pitch *out);
+
+/**
+ * Parses a LilyPond pitch name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_lily(const char *s, Pitch *out);
+
+/**
+ * Parses a Helmholtz pitch name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_helmholtz(const char *s, Pitch *out);
+
+/**
+ * Parses an ABC note name to generate a pitch.
+ * @param out
+ * Pointer to a Pitch to store the parsed vector.
+ * @return
+ * 0 means nothing went wrong.
+ */
+int pitch_from_abc(const char *s, Pitch *out);
+
+/**
+ * Returns the SPN name of a Pitch as a string.
+ * You must pass a char buf[8] to store the result, which is returned via an
+ * out-param.
+ */
+void pitch_spn(Pitch p, char *out);
+
+/**
+ * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
+ * strings representing Pitches that will map to each other.
+ * @param out
+ * Pointer to a MirrorAxis to store the resulting axis.
+ * @return
+ * 0 means nothing went wrong.
+ */
+static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
+    Pitch p, q;
+
+    if (pitch_from_spn(p_str, &p))
+        return 1;
+    if (pitch_from_spn(q_str, &q))
+        return 1;
+
+    out->w = p.w + q.w;
+    out->h = p.h + q.h;
+    return 0;
+}
 #endif // MEANTONAL_HEADER
 
 // -----------------------------------------
@@ -657,203 +657,6 @@ const Map2D GENERATORS_FROM = {3, 5, 1, 2};
 
 const double CONCERT_C4 = 261.6255653005986;
 
-static const Pitch letters[7] = {
-    {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
-};
-
-int pitch_from_spn(const char *s, Pitch *out) {
-    const char *p = s;
-
-    int letter;
-    if (*p >= 'A' && *p <= 'G') {
-        letter = *p++ - 'A';
-    } else if (*p >= 'a' && *p <= 'g') {
-        letter = *p++ - 'a';
-    } else {
-        return 1; // invalid
-    }
-    out->w = letters[letter].w;
-    out->h = letters[letter].h;
-
-    int acc = 0;
-    while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
-        switch (*p) {
-        case '#':
-            acc++;
-            break;
-        case 'b':
-            acc--;
-            break;
-        case 'x':
-            acc += 2;
-            break;
-        case 'w':
-            acc -= 2;
-            break;
-        }
-        p++;
-    }
-    out->w += acc;
-    out->h -= acc;
-
-    char *end;
-    long oct = strtol(p, &end, 10) + 1;
-    if (end == p) {
-        return 1; // no digits found
-    }
-    out->w += (int)oct * 5;
-    out->h += (int)oct * 2;
-
-    return 0;
-}
-
-int pitch_from_lily(const char *s, Pitch *out) {
-    const char *p = s;
-
-    int letter;
-    if (*p >= 'a' && *p <= 'g') {
-        letter = *p++ - 'a';
-    } else {
-        return 1; // invalid
-    }
-    out->w = letters[letter].w;
-    out->h = letters[letter].h;
-
-    int acc = 0;
-    while (*p == 'i' || *p == 'e') {
-        switch (*p) {
-        case 'i':
-            acc++;
-            break;
-        case 'e':
-            acc--;
-            break;
-        }
-        p += 2;
-    }
-    out->w += acc;
-    out->h -= acc;
-
-    int oct = 4;
-    while (*p == '\'' || *p == ',') {
-        switch (*p) {
-        case '\'':
-            oct++;
-            break;
-        case ',':
-            oct--;
-            break;
-        }
-        p++;
-    }
-    out->w += oct * 5;
-    out->h += oct * 2;
-
-    return 0;
-}
-
-int pitch_from_helmholtz(const char *s, Pitch *out) {
-    const char *p = s;
-
-    int letter;
-    int oct = 4;
-    if (*p >= 'A' && *p <= 'G') {
-        letter = *p++ - 'A';
-        oct--;
-    } else if (*p >= 'a' && *p <= 'g') {
-        letter = *p++ - 'a';
-    } else {
-        return 1; // invalid
-    }
-    out->w = letters[letter].w;
-    out->h = letters[letter].h;
-
-    int acc = 0;
-    while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
-        switch (*p) {
-        case '#':
-            acc++;
-            break;
-        case 'b':
-            acc--;
-            break;
-        case 'x':
-            acc += 2;
-            break;
-        case 'w':
-            acc -= 2;
-            break;
-        }
-        p++;
-    }
-    out->w += acc;
-    out->h -= acc;
-
-    while (*p == '\'' || *p == ',') {
-        switch (*p) {
-        case '\'':
-            oct++;
-            break;
-        case ',':
-            oct--;
-            break;
-        }
-        p++;
-    }
-    out->w += oct * 5;
-    out->h += oct * 2;
-
-    return 0;
-}
-
-int pitch_from_abc(const char *s, Pitch *out) {
-    const char *p = s;
-
-    int acc = 0;
-    while (*p == '^' || *p == '=' || *p == '_') {
-        switch (*p) {
-        case '^':
-            acc++;
-            break;
-        case '_':
-            acc--;
-            break;
-        }
-        p++;
-    }
-    out->w = acc;
-    out->h = -acc;
-
-    int letter;
-    int oct = 6;
-    if (*p >= 'A' && *p <= 'G') {
-        letter = *p++ - 'A';
-        oct--;
-    } else if (*p >= 'a' && *p <= 'g') {
-        letter = *p++ - 'a';
-    } else {
-        return 1; // invalid
-    }
-    out->w += letters[letter].w;
-    out->h += letters[letter].h;
-
-    while (*p == '\'' || *p == ',') {
-        switch (*p) {
-        case '\'':
-            oct++;
-            break;
-        case ',':
-            oct--;
-            break;
-        }
-        p++;
-    }
-    out->w += oct * 5;
-    out->h += oct * 2;
-
-    return 0;
-}
-
 Pitch pitch_from_chroma(int chroma, int octave) {
     Pitch p = {0, 0};
     p.w += chroma * 3;
@@ -867,49 +670,6 @@ Pitch pitch_from_chroma(int chroma, int octave) {
         p.h += 2;
     }
     return p;
-}
-
-Pitch pitch_from_standard(StandardPitch p) {
-    return (Pitch){
-        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
-        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
-    };
-}
-
-void pitch_spn(Pitch p, char *out) {
-    size_t pos = 0;
-    size_t cap = 8;
-
-    char letter = pitch_letter(p) + 'A';
-    int accidental = pitch_accidental(p);
-    int octave = pitch_octave(p);
-
-    pos += snprintf(out + pos, cap - pos, "%c", letter);
-
-    switch (accidental) {
-    case 2:
-        pos += snprintf(out + pos, cap - pos, "x");
-        break;
-    case 1:
-        pos += snprintf(out + pos, cap - pos, "#");
-        break;
-    case 0:
-        break;
-    case -1:
-        pos += snprintf(out + pos, cap - pos, "b");
-        break;
-    case -2:
-        pos += snprintf(out + pos, cap - pos, "bb");
-        break;
-    default:
-        if (accidental > 0) {
-            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
-        } else {
-            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
-        }
-        break;
-    }
-    pos += snprintf(out + pos, cap - pos, "%d", octave);
 }
 
 static const Interval major_ints[7] = {
@@ -1216,6 +976,246 @@ PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b) {
     result = pc_set_union(result, right);
 
     return result;
+}
+
+const Pitch letters[7] = {
+    {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
+};
+
+Pitch pitch_from_standard(StandardPitch p) {
+    return (Pitch){
+        .w = letters[p.letter].w + 5 * p.octave + p.accidental,
+        .h = letters[p.letter].h + 2 * p.octave - p.accidental,
+    };
+}
+
+int pitch_from_spn(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int letter;
+    if (*p >= 'A' && *p <= 'G') {
+        letter = *p++ - 'A';
+    } else if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    int acc = 0;
+    while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
+        switch (*p) {
+        case '#':
+            acc++;
+            break;
+        case 'b':
+            acc--;
+            break;
+        case 'x':
+            acc += 2;
+            break;
+        case 'w':
+            acc -= 2;
+            break;
+        }
+        p++;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    char *end;
+    long oct = strtol(p, &end, 10) + 1;
+    if (end == p) {
+        return 1; // no digits found
+    }
+    out->w += (int)oct * 5;
+    out->h += (int)oct * 2;
+
+    return 0;
+}
+
+int pitch_from_lily(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int letter;
+    if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    int acc = 0;
+    while (*p == 'i' || *p == 'e') {
+        switch (*p) {
+        case 'i':
+            acc++;
+            break;
+        case 'e':
+            acc--;
+            break;
+        }
+        p += 2;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    int oct = 4;
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
+int pitch_from_helmholtz(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int letter;
+    int oct = 4;
+    if (*p >= 'A' && *p <= 'G') {
+        letter = *p++ - 'A';
+        oct--;
+    } else if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    int acc = 0;
+    while (*p == '#' || *p == 'b' || *p == 'x' || *p == 'w') {
+        switch (*p) {
+        case '#':
+            acc++;
+            break;
+        case 'b':
+            acc--;
+            break;
+        case 'x':
+            acc += 2;
+            break;
+        case 'w':
+            acc -= 2;
+            break;
+        }
+        p++;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
+int pitch_from_abc(const char *s, Pitch *out) {
+    const char *p = s;
+
+    int acc = 0;
+    while (*p == '^' || *p == '=' || *p == '_') {
+        switch (*p) {
+        case '^':
+            acc++;
+            break;
+        case '_':
+            acc--;
+            break;
+        }
+        p++;
+    }
+    out->w = acc;
+    out->h = -acc;
+
+    int letter;
+    int oct = 6;
+    if (*p >= 'A' && *p <= 'G') {
+        letter = *p++ - 'A';
+        oct--;
+    } else if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w += letters[letter].w;
+    out->h += letters[letter].h;
+
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    return 0;
+}
+
+void pitch_spn(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 8;
+
+    char letter = pitch_letter(p) + 'A';
+    int accidental = pitch_accidental(p);
+    int octave = pitch_octave(p);
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    switch (accidental) {
+    case 2:
+        pos += snprintf(out + pos, cap - pos, "x");
+        break;
+    case 1:
+        pos += snprintf(out + pos, cap - pos, "#");
+        break;
+    case 0:
+        break;
+    case -1:
+        pos += snprintf(out + pos, cap - pos, "b");
+        break;
+    case -2:
+        pos += snprintf(out + pos, cap - pos, "bb");
+        break;
+    default:
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+        } else {
+            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+        }
+        break;
+    }
+    pos += snprintf(out + pos, cap - pos, "%d", octave);
 }
 #endif // MEANTONAL
 

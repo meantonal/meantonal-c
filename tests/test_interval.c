@@ -1,4 +1,5 @@
 #include "../include/interval.h"
+#include "../include/parse.h"
 #include "../include/pitch.h"
 #include "test_framework.h"
 #include <stdbool.h>

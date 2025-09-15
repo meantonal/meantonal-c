@@ -1,5 +1,5 @@
 #include "../include/interval.h"
-#include "../include/pitch.h"
+#include "../include/parse.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

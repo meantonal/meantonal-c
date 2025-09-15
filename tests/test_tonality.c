@@ -1,3 +1,4 @@
+#include "../include/parse.h"
 #include "../include/tonality.h"
 #include "test_framework.h"
 
