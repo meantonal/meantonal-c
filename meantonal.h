@@ -289,6 +289,14 @@ static inline Interval interval_between(Pitch p, Pitch q) {
 static inline int interval_chroma(Interval m) { return (2 * m.w) - (5 * m.h); }
 
 /**
+ * Returns true if the Interval can occur diatonically (is found within the
+ * major scale)
+ */
+static inline bool interval_diatonic(Interval m) {
+    return abs(interval_chroma(m)) < 7;
+}
+
+/**
  * Check whether two intervals are the same.
  * Enharmonic intervals are not considered the same, use interval_enharmonic().
  */

@@ -34,6 +34,38 @@ void test_interval_chroma(void) {
     ASSERT_EQ(interval_chroma(n), -3);
 }
 
+void test_interval_diatonic(void) {
+    Interval n;
+    interval_from_name("P8", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("m2", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("M2", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("m3", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("M3", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("P4", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("A4", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("d5", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("P5", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("m6", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("M6", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("m7", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("M7", &n);
+    ASSERT_EQ(interval_diatonic(n), true);
+    interval_from_name("A6", &n);
+    ASSERT_EQ(interval_diatonic(n), false);
+}
+
 void test_intervals_equal(void) {
     Interval m = {3, 1};
     Interval n;
@@ -121,6 +153,7 @@ void test_interval_from_spn(void) {
 void test_interval_functions(void) {
     RUN_TESTS(test_interval_between);
     RUN_TESTS(test_interval_chroma);
+    RUN_TESTS(test_interval_diatonic);
     RUN_TESTS(test_intervals_equal);
     RUN_TESTS(test_intervals_enharmonic);
     RUN_TESTS(test_stepspan);
