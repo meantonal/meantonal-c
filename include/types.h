@@ -5,8 +5,8 @@
  * The most fundamental pitch representation in Meantonal.
  */
 typedef struct {
-        int w; // whole steps
-        int h; // half steps
+    int w; // whole steps
+    int h; // half steps
 } Pitch;
 
 /**
@@ -35,13 +35,13 @@ enum Mode {
  * in a key/mode.
  */
 typedef struct {
-        struct {
-                int letter;
-                int accidental;
-        } tonic;
-        enum Mode mode;
-        int chroma_offset; // offset used by internal functions to reconcile
-                           // notes.
+    struct {
+        int letter;
+        int accidental;
+    } tonic;
+    enum Mode mode;
+    int chroma_offset; // offset used by internal functions to reconcile
+                       // notes.
 } TonalContext;
 
 /**
@@ -80,7 +80,7 @@ typedef struct tnode *PitchClassSet;
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
-        double m0, m1;
+    double m0, m1;
 } Map1D;
 
 /**
@@ -89,15 +89,15 @@ typedef struct {
  * isomorphic keyboard layouts.
  */
 typedef struct {
-        double m00, m01;
-        double m10, m11;
+    double m00, m01;
+    double m10, m11;
 } Map2D;
 
 /**
  * This type is reserved for operations using Map2D matrices.
  */
 typedef struct {
-        double x, y;
+    double x, y;
 } MapVec;
 
 /**
@@ -105,9 +105,9 @@ typedef struct {
  * from Pitch and Interval vectors.
  */
 typedef struct {
-        Pitch ref_pitch;
-        double ref_freq;
-        Map1D centmap;
+    Pitch ref_pitch;
+    double ref_freq;
+    Map1D centmap;
 } TuningMap;
 
 /**
@@ -122,9 +122,9 @@ typedef Pitch MirrorAxis;
  * - Potentially an easier parsing target
  */
 typedef struct {
-        int letter;
-        int accidental;
-        int octave;
+    int letter;
+    int accidental;
+    int octave;
 } StandardPitch;
 
 #endif

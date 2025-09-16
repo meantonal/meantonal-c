@@ -33,6 +33,10 @@ printf "// -----------------------------------------\n\n" >> "$OUT"
 printf "#ifdef MEANTONAL\n" >> "$OUT"
 printf "#undef MEANTONAL\n" >> "$OUT"
 
+printf "#include <stdio.h>\n" >> "$OUT"
+printf "#include <stdint.h>\n" >> "$OUT"
+printf "#include <math.h>\n" >> "$OUT"
+
 strip_headers < "src/constants.c" >> "$OUT"
 strip_headers < "src/pitch.c" >> "$OUT"
 strip_headers < "src/interval.c" >> "$OUT"

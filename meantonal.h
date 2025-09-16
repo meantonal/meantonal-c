@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // -----------------------------------------
 // HEADER DECLARATIONS ---------------------
@@ -12,8 +12,8 @@
  * The most fundamental pitch representation in Meantonal.
  */
 typedef struct {
-        int w; // whole steps
-        int h; // half steps
+    int w; // whole steps
+    int h; // half steps
 } Pitch;
 
 /**
@@ -42,13 +42,13 @@ enum Mode {
  * in a key/mode.
  */
 typedef struct {
-        struct {
-                int letter;
-                int accidental;
-        } tonic;
-        enum Mode mode;
-        int chroma_offset; // offset used by internal functions to reconcile
-                           // notes.
+    struct {
+        int letter;
+        int accidental;
+    } tonic;
+    enum Mode mode;
+    int chroma_offset; // offset used by internal functions to reconcile
+                       // notes.
 } TonalContext;
 
 /**
@@ -87,7 +87,7 @@ typedef struct tnode *PitchClassSet;
  * dimension, e.g. (2, 1) maps Pitch vectors to MIDI.
  */
 typedef struct {
-        double m0, m1;
+    double m0, m1;
 } Map1D;
 
 /**
@@ -96,15 +96,15 @@ typedef struct {
  * isomorphic keyboard layouts.
  */
 typedef struct {
-        double m00, m01;
-        double m10, m11;
+    double m00, m01;
+    double m10, m11;
 } Map2D;
 
 /**
  * This type is reserved for operations using Map2D matrices.
  */
 typedef struct {
-        double x, y;
+    double x, y;
 } MapVec;
 
 /**
@@ -112,9 +112,9 @@ typedef struct {
  * from Pitch and Interval vectors.
  */
 typedef struct {
-        Pitch ref_pitch;
-        double ref_freq;
-        Map1D centmap;
+    Pitch ref_pitch;
+    double ref_freq;
+    Map1D centmap;
 } TuningMap;
 
 /**
@@ -129,20 +129,16 @@ typedef Pitch MirrorAxis;
  * - Potentially an easier parsing target
  */
 typedef struct {
-        int letter;
-        int accidental;
-        int octave;
+    int letter;
+    int accidental;
+    int octave;
 } StandardPitch;
-
-
 
 extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
     EDO81;
 extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
 extern const double CONCERT_C4;
-
-
 
 /**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
@@ -255,8 +251,6 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
  * Converts from (letter, accidental, octave) format to (whole, half)
  */
 Pitch pitch_from_standard(StandardPitch p);
-
-
 
 /**
  * Parses an interval name like "P5" to generate an Interval.
@@ -386,8 +380,6 @@ static inline Interval interval_simple(Interval m) {
     return m;
 }
 
-
-
 /**
  * Creates a TonalContext from a string naming the pitch class (e.g. "Ab"), and
  * a Mode (e.g. DORIAN).
@@ -444,8 +436,6 @@ Pitch snap_diatonic(Pitch p, TonalContext key);
  */
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
 
-
-
 /**
  * Frees the memory previously allocated by a passed in PitchClassSet.
  */
@@ -491,8 +481,6 @@ PitchClassSet pc_set_intersection(PitchClassSet a, PitchClassSet b);
  * second.
  */
 PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
-
-
 
 /**
  * Maps to an integer using a 1x2 matrix.
@@ -565,7 +553,6 @@ double to_ratio(Interval m, TuningMap T);
  */
 double to_cents(Interval m, TuningMap T);
 
-
 /**
  * Parses Scientific Pitch Notation to generate a pitch.
  * @param out
@@ -610,6 +597,33 @@ int pitch_from_abc(const char *s, Pitch *out);
 void pitch_spn(Pitch p, char *out);
 
 /**
+ * Returns the LilyPond note name of a Pitch as a string.
+ * You must pass a char buf[16] to store the result, which is returned via an
+ * out-param.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
+ */
+void pitch_lily(Pitch p, char *out);
+
+/**
+ * Returns the Helmholtz note name of a Pitch as a string.
+ * You must pass a char buf[16] to store the result, which is returned via an
+ * out-param.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
+ */
+void pitch_helmholtz(Pitch p, char *out);
+
+/**
+ * Returns the ABC note name of a Pitch as a string.
+ * You must pass a char buf[16] to store the result, which is returned via an
+ * out-param.
+ * Will truncate anything requiring accidentals more remote than quadruple
+ * sharps/flats, or requiring more than 6 's or ,s to print.
+ */
+void pitch_abc(Pitch p, char *out);
+
+/**
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
  * strings representing Pitches that will map to each other.
  * @param out
@@ -637,6 +651,9 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 
 #ifdef MEANTONAL
 #undef MEANTONAL
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
 
 const Map1D EDO7 = {1, 1};
 const Map1D EDO12 = {2, 1};
@@ -1217,5 +1234,146 @@ void pitch_spn(Pitch p, char *out) {
     }
     pos += snprintf(out + pos, cap - pos, "%d", octave);
 }
-#endif // MEANTONAL
 
+void pitch_lily(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p) + 'a';
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+    int octave = pitch_octave(p) - 3;
+    if (octave > 6)
+        octave = 6;
+    if (octave < -6)
+        octave = -6;
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+    while (accidental) {
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "is");
+            accidental--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, "es");
+            accidental++;
+        }
+    }
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}
+
+void pitch_helmholtz(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p);
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+
+    int octave = pitch_octave(p) - 3;
+    if (octave > 6)
+        octave = 6;
+    if (octave < 0) {
+        octave++;
+        letter += 'A';
+    } else
+        letter += 'a';
+    if (octave < -6)
+        octave = -6;
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    switch (accidental) {
+    case 2:
+        pos += snprintf(out + pos, cap - pos, "x");
+        break;
+    case 1:
+        pos += snprintf(out + pos, cap - pos, "#");
+        break;
+    case 0:
+        break;
+    case -1:
+        pos += snprintf(out + pos, cap - pos, "b");
+        break;
+    case -2:
+        pos += snprintf(out + pos, cap - pos, "bb");
+        break;
+    default:
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+        } else {
+            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+        }
+        break;
+    }
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}
+
+void pitch_abc(Pitch p, char *out) {
+    size_t pos = 0;
+    size_t cap = 16;
+
+    char letter = pitch_letter(p);
+    int accidental = pitch_accidental(p);
+    if (accidental > 4)
+        accidental = 4;
+    if (accidental < -4)
+        accidental = -4;
+
+    int octave = pitch_octave(p) - 5;
+    if (octave > 6)
+        octave = 6;
+    if (octave < 0) {
+        octave++;
+        letter += 'A';
+    } else
+        letter += 'a';
+    if (octave < -6)
+        octave = -6;
+
+    while (accidental) {
+        if (accidental > 0) {
+            pos += snprintf(out + pos, cap - pos, "^");
+            accidental--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, "_");
+            accidental++;
+        }
+    }
+
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+
+    while (octave) {
+        if (octave > 0) {
+            pos += snprintf(out + pos, cap - pos, "'");
+            octave--;
+        } else {
+            pos += snprintf(out + pos, cap - pos, ",");
+            octave++;
+        }
+    }
+}
+#endif // MEANTONAL
