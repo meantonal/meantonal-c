@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "../include/pc_set.h"
+
 typedef struct tnode {
     int value;
     struct tnode *left;
