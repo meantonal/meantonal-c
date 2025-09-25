@@ -85,16 +85,17 @@ static inline int interval_pc12(Interval m) { return (2 * m.w + m.h) % 12; }
  * etc. for silly intervals.
  */
 static inline int interval_quality(Interval m) {
+    int sign = stepspan(m) < 0 ? -1 : 1;
     int chroma = interval_chroma(m);
     if (chroma == 0)
-        return 0;
+        return sign * 0;
     if (chroma > 0 && chroma <= 5)
-        return (chroma + 5) / 7;
+        return sign * (chroma + 5) / 7;
     if (chroma < 0 && chroma >= -5)
-        return (chroma - 5) / 7;
+        return sign * (chroma - 5) / 7;
     if (chroma > 5)
-        return (chroma + 8) / 7;
-    return (chroma - 8) / 7;
+        return sign * (chroma + 8) / 7;
+    return sign * (chroma - 8) / 7;
 }
 
 /**

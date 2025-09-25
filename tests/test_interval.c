@@ -3,6 +3,7 @@
 #include "../include/pitch.h"
 #include "test_framework.h"
 #include <stdbool.h>
+#include <string.h>
 
 void assert_int_between(char *p_str, char *q_str, char *m_str) {
     Pitch p, q;
@@ -124,6 +125,11 @@ void test_interval_quality(void) {
 
     assert_int_quality("AAAA2", 5);
     assert_int_quality("dddd2", -5);
+
+    assert_int_quality("-M2", 1);
+    assert_int_quality("-m2", -1);
+    assert_int_quality("-A4", 2);
+    assert_int_quality("-d4", -2);
 }
 
 void test_transpose_real(void) {
@@ -138,9 +144,62 @@ void test_transpose_real(void) {
 
 void test_interval_from_name(void) {
     Interval m;
-    interval_from_name("A6", &m);
-    Interval n = {5, 0};
+    interval_from_name("P1", &m);
+    Interval n = {0, 0};
     ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("m2", &m);
+    n = (Interval){0, 1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("M2", &m);
+    n = (Interval){1, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("m3", &m);
+    n = (Interval){1, 1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("M3", &m);
+    n = (Interval){2, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("P4", &m);
+    n = (Interval){2, 1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("A4", &m);
+    n = (Interval){3, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("d5", &m);
+    n = (Interval){2, 2};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("m6", &m);
+    n = (Interval){3, 2};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("M6", &m);
+    n = (Interval){4, 1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("m7", &m);
+    n = (Interval){4, 2};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("M7", &m);
+    n = (Interval){5, 1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("A6", &m);
+    n = (Interval){5, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-m2", &m);
+    n = (Interval){0, -1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-M2", &m);
+    n = (Interval){-1, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-m3", &m);
+    n = (Interval){-1, -1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-M3", &m);
+    n = (Interval){-2, 0};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-P4", &m);
+    n = (Interval){-2, -1};
+    ASSERT_EQ(intervals_equal(m, n), true);
+    interval_from_name("-A4", &m);
+    n = (Interval){-3, 0};
 }
 
 void test_interval_from_spn(void) {
@@ -148,6 +207,44 @@ void test_interval_from_spn(void) {
     interval_from_spn("B3", "Ab4", &m);
     Interval n = {3, 3};
     ASSERT_EQ(intervals_equal(m, n), true);
+}
+
+void test_name(char *name) {
+    Interval m;
+    interval_from_name(name, &m);
+    char buf[8];
+    interval_name(m, buf);
+    ASSERT_EQ(strcmp(name, buf), 0);
+}
+
+void test_interval_name(void) {
+    test_name("P1");
+    test_name("m2");
+    test_name("M2");
+    test_name("m3");
+    test_name("M3");
+    test_name("P4");
+    test_name("A4");
+    test_name("d5");
+    test_name("P5");
+    test_name("m6");
+    test_name("M6");
+    test_name("m7");
+    test_name("M7");
+    test_name("P8");
+    test_name("-m2");
+    test_name("-M2");
+    test_name("-m3");
+    test_name("-M3");
+    test_name("-P4");
+    test_name("-A4");
+    test_name("-d5");
+    test_name("-P5");
+    test_name("-m6");
+    test_name("-M6");
+    test_name("-m7");
+    test_name("-M7");
+    test_name("-P8");
 }
 
 void test_interval_functions(void) {
@@ -161,4 +258,5 @@ void test_interval_functions(void) {
     RUN_TESTS(test_transpose_real);
     RUN_TESTS(test_interval_from_name);
     RUN_TESTS(test_interval_from_spn);
+    RUN_TESTS(test_interval_name);
 }

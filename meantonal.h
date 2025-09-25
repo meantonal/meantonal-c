@@ -1,5 +1,5 @@
-#include <stdbool.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // -----------------------------------------
 // HEADER DECLARATIONS ---------------------
@@ -134,11 +134,15 @@ typedef struct {
     int octave;
 } StandardPitch;
 
+
+
 extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
     EDO81;
 extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
 extern const double CONCERT_C4;
+
+
 
 /**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
@@ -252,6 +256,8 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
  */
 Pitch pitch_from_standard(StandardPitch p);
 
+
+
 /**
  * Parses an interval name like "P5" to generate an Interval.
  * @param out
@@ -332,16 +338,17 @@ static inline int interval_pc12(Interval m) { return (2 * m.w + m.h) % 12; }
  * etc. for silly intervals.
  */
 static inline int interval_quality(Interval m) {
+    int sign = stepspan(m) < 0 ? -1 : 1;
     int chroma = interval_chroma(m);
     if (chroma == 0)
-        return 0;
+        return sign * 0;
     if (chroma > 0 && chroma <= 5)
-        return (chroma + 5) / 7;
+        return sign * (chroma + 5) / 7;
     if (chroma < 0 && chroma >= -5)
-        return (chroma - 5) / 7;
+        return sign * (chroma - 5) / 7;
     if (chroma > 5)
-        return (chroma + 8) / 7;
-    return (chroma - 8) / 7;
+        return sign * (chroma + 8) / 7;
+    return sign * (chroma - 8) / 7;
 }
 
 /**
@@ -387,6 +394,8 @@ static inline Interval interval_simple(Interval m) {
     }
     return m;
 }
+
+
 
 /**
  * Creates a TonalContext from a string naming the pitch class (e.g. "Ab"), and
@@ -444,6 +453,8 @@ Pitch snap_diatonic(Pitch p, TonalContext key);
  */
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
 
+
+
 /**
  * Frees the memory previously allocated by a passed in PitchClassSet.
  */
@@ -489,6 +500,8 @@ PitchClassSet pc_set_intersection(PitchClassSet a, PitchClassSet b);
  * second.
  */
 PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
+
+
 
 /**
  * Maps to an integer using a 1x2 matrix.
@@ -560,6 +573,7 @@ double to_ratio(Interval m, TuningMap T);
  * defined by the passed-in TuningMap.
  */
 double to_cents(Interval m, TuningMap T);
+
 
 /**
  * Parses Scientific Pitch Notation to generate a pitch.
@@ -659,9 +673,9 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 
 #ifdef MEANTONAL
 #undef MEANTONAL
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <math.h>
 
 const Map1D EDO7 = {1, 1};
 const Map1D EDO12 = {2, 1};
@@ -782,13 +796,16 @@ void interval_name(Interval m, char *out) {
 
     static const char qualities[5] = {'d', 'm', 'P', 'M', 'A'};
     int8_t quality = interval_quality(m);
-    int8_t generic_size = stepspan(m) + 1;
+    int ss = stepspan(m);
+    int8_t generic_size = abs(ss) + 1;
+    char *sign = ss < 0 ? "-" : "";
     if (quality <= 2 && quality >= -2) {
-        snprintf(out, cap, "%c%hhd", qualities[quality + 2], generic_size);
+        snprintf(out, cap, "%s%c%hhd", sign, qualities[quality + 2],
+                 generic_size);
     } else if (quality > 0) {
-        snprintf(out, cap, "%dA%hhd", quality - 1, generic_size);
+        snprintf(out, cap, "%s%dA%hhd", sign, quality - 1, generic_size);
     } else {
-        snprintf(out, cap, "%hhdd%hhd", -quality - 1, generic_size);
+        snprintf(out, cap, "%s%hhdd%hhd", sign, -quality - 1, generic_size);
     }
 }
 
@@ -884,6 +901,7 @@ Pitch snap_diatonic(Pitch p, TonalContext key) {
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key) {
     return snap_diatonic(transpose_real(p, (Interval){interval, 0}), key);
 }
+
 
 typedef struct tnode {
     int value;
@@ -1385,3 +1403,4 @@ void pitch_abc(Pitch p, char *out) {
     }
 }
 #endif // MEANTONAL
+

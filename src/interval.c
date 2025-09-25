@@ -89,12 +89,15 @@ void interval_name(Interval m, char *out) {
 
     static const char qualities[5] = {'d', 'm', 'P', 'M', 'A'};
     int8_t quality = interval_quality(m);
-    int8_t generic_size = stepspan(m) + 1;
+    int ss = stepspan(m);
+    int8_t generic_size = abs(ss) + 1;
+    char *sign = ss < 0 ? "-" : "";
     if (quality <= 2 && quality >= -2) {
-        snprintf(out, cap, "%c%hhd", qualities[quality + 2], generic_size);
+        snprintf(out, cap, "%s%c%hhd", sign, qualities[quality + 2],
+                 generic_size);
     } else if (quality > 0) {
-        snprintf(out, cap, "%dA%hhd", quality - 1, generic_size);
+        snprintf(out, cap, "%s%dA%hhd", sign, quality - 1, generic_size);
     } else {
-        snprintf(out, cap, "%hhdd%hhd", -quality - 1, generic_size);
+        snprintf(out, cap, "%s%hhdd%hhd", sign, -quality - 1, generic_size);
     }
 }
