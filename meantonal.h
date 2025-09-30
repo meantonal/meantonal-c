@@ -115,6 +115,7 @@ typedef struct {
     Pitch ref_pitch;
     double ref_freq;
     Map1D centmap;
+    Map1D stepmap;
 } TuningMap;
 
 /**
@@ -219,6 +220,24 @@ static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
 }
 
 /**
+ * Returns the highest Pitch in a passed-in array. Uses a TuningMap to determine
+ * which Pitch is higher than the others.
+ */
+Pitch pitch_highest(Pitch arr[], int len, TuningMap T);
+
+/**
+ * Returns the lowest Pitch in a passed-in array. Uses a TuningMap to determine
+ * which Pitch is lower than the others.
+ */
+Pitch pitch_lowest(Pitch arr[], int len, TuningMap T);
+
+/**
+ * Finds the nearest Pitch in an array to a given Pitch. Uses a TuningMap to
+ * determine which Pitch is closer than the others.
+ */
+Pitch pitch_nearest(Pitch p, Pitch arr[], int len, TuningMap T);
+
+/**
  * Returns a new Pitch shifted by the given interval.
  * @return
  * Pitch (p + m)
@@ -250,11 +269,6 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
                            .accidental = pitch_accidental(p),
                            .octave = pitch_octave(p)};
 }
-
-/**
- * Converts from (letter, accidental, octave) format to (whole, half)
- */
-Pitch pitch_from_standard(StandardPitch p);
 
 
 
@@ -574,6 +588,19 @@ double to_ratio(Interval m, TuningMap T);
  */
 double to_cents(Interval m, TuningMap T);
 
+/**
+ * Returns an ordered pitch numbering for the passed Pitch as an integer.
+ * Available in any EDO TuningMap created via TuningMap.fromEDO. For 12TET, this
+ * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
+ * it provides an ordered MIDI-equvalent mapping.
+ */
+int to_pitch_number(Pitch p, TuningMap T);
+
+
+/**
+ * Converts from (letter, accidental, octave) format to (whole, half)
+ */
+Pitch pitch_from_standard(StandardPitch p);
 
 /**
  * Parses Scientific Pitch Notation to generate a pitch.
@@ -709,6 +736,62 @@ Pitch pitch_from_chroma(int chroma, int octave) {
         p.h += 2;
     }
     return p;
+}
+
+Pitch pitch_highest(Pitch arr[], int len, TuningMap T) {
+    Pitch highest = arr[0];
+    for (int i = 1; i < len; i++) {
+        if (to_hz(arr[i], T) > to_hz(highest, T))
+            highest = arr[i];
+        else if (to_hz(arr[i], T) == to_hz(highest, T) &&
+                 steps_between(arr[i], highest) < 0)
+            highest = arr[i];
+    }
+    return highest;
+}
+
+Pitch pitch_lowest(Pitch arr[], int len, TuningMap T) {
+    Pitch lowest = arr[0];
+    for (int i = 1; i < len; i++) {
+        if (to_hz(arr[i], T) < to_hz(lowest, T))
+            lowest = arr[i];
+        else if (to_hz(arr[i], T) == to_hz(lowest, T) &&
+                 steps_between(arr[i], lowest) > 0)
+            lowest = arr[i];
+    }
+    return lowest;
+}
+
+double oriented_ratio_between(Pitch p, Pitch q, TuningMap T) {
+    double x = to_ratio(interval_between(p, q), T);
+    double y = to_ratio(interval_between(q, p), T);
+    return x >= y ? x : y;
+}
+
+Pitch pitch_nearest(Pitch p, Pitch arr[], int len, TuningMap T) {
+    double smallest_ratio = oriented_ratio_between(p, arr[0], T);
+
+    for (int i = 1; i < len; i++) {
+        double x = oriented_ratio_between(p, arr[i], T);
+        if (x < smallest_ratio)
+            smallest_ratio = x;
+    }
+
+    Pitch candidates[len];
+    int candidates_len = 0;
+    for (int i = 0; i < len; i++) {
+        if (oriented_ratio_between(p, arr[i], T) == smallest_ratio)
+            candidates[candidates_len++] = arr[i];
+    }
+
+    Pitch closest = candidates[0];
+    for (int i = 1; i < candidates_len; i++) {
+        if (abs(steps_between(p, candidates[i])) <
+            abs(steps_between(p, closest)))
+            closest = candidates[i];
+    }
+
+    return closest;
 }
 
 static const Interval major_ints[7] = {

@@ -1,3 +1,4 @@
+#include "../include/map.h"
 #include "../include/parse.h"
 #include "../include/pitch.h"
 #include "test_framework.h"
@@ -161,6 +162,70 @@ void test_pitch_invert(void) {
     ASSERT_EQ(pitches_equal(p, q), true);
 }
 
+void test_pitch_highest(void) {
+    char *names[10] = {"B#3", "C4", "D4",  "D#4", "Eb4",
+                       "E4",  "F4", "Ex4", "F#4", "Gb4"};
+    Pitch arr[10];
+    for (int i = 0; i < 10; i++) {
+        pitch_from_spn(names[i], arr + i);
+    }
+
+    Pitch p;
+    pitch_from_spn("Gb4", &p);
+
+    Pitch reference;
+    pitch_from_spn("A4", &reference);
+    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    Pitch highest = pitch_highest(arr, 10, T);
+
+    ASSERT_EQ(pitches_equal(p, highest), true);
+}
+
+void test_pitch_lowest(void) {
+    char *names[10] = {"B#3", "C4", "D4",  "D#4", "Eb4",
+                       "E4",  "F4", "Ex4", "F#4", "Gb4"};
+    Pitch arr[10];
+    for (int i = 0; i < 10; i++) {
+        pitch_from_spn(names[i], arr + i);
+    }
+
+    Pitch p;
+    pitch_from_spn("B#3", &p);
+
+    Pitch reference;
+    pitch_from_spn("A4", &reference);
+    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    Pitch lowest = pitch_lowest(arr, 10, T);
+
+    ASSERT_EQ(pitches_equal(p, lowest), true);
+}
+
+void test_pitch_nearest(void) {
+    char *names[10] = {"B#3", "C4", "D4",  "D#4", "Eb4",
+                       "E4",  "F4", "Ex4", "F#4", "Gb4"};
+    Pitch arr[10];
+    for (int i = 0; i < 10; i++) {
+        pitch_from_spn(names[i], arr + i);
+    }
+
+    Pitch p;
+    pitch_from_spn("Gbb4", &p);
+    Pitch q;
+    pitch_from_spn("F4", &q);
+
+    Pitch reference;
+    pitch_from_spn("A4", &reference);
+    TuningMap T = tuning_map_from_edo(12, reference, 440);
+
+    Pitch nearest = pitch_nearest(p, arr, 10, T);
+    ASSERT_EQ(pitches_equal(q, nearest), true);
+
+    pitch_from_spn("Ex4", &q);
+    T = tuning_map_from_edo(31, reference, 440);
+    nearest = pitch_nearest(p, arr, 10, T);
+    ASSERT_EQ(pitches_equal(q, nearest), true);
+}
+
 void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_chroma);
     RUN_TESTS(test_steps_between);
@@ -174,4 +239,7 @@ void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_from_standard);
     RUN_TESTS(test_pitch_from_chroma);
     RUN_TESTS(test_pitch_invert);
+    RUN_TESTS(test_pitch_highest);
+    RUN_TESTS(test_pitch_lowest);
+    RUN_TESTS(test_pitch_nearest);
 }

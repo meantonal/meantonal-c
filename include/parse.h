@@ -1,6 +1,11 @@
 #include "types.h"
 
 /**
+ * Converts from (letter, accidental, octave) format to (whole, half)
+ */
+Pitch pitch_from_standard(StandardPitch p);
+
+/**
  * Parses Scientific Pitch Notation to generate a pitch.
  * @param out
  * Pointer to a Pitch to store the parsed vector.

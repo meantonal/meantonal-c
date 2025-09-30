@@ -74,4 +74,12 @@ double to_ratio(Interval m, TuningMap T);
  */
 double to_cents(Interval m, TuningMap T);
 
+/**
+ * Returns an ordered pitch numbering for the passed Pitch as an integer.
+ * Available in any EDO TuningMap created via TuningMap.fromEDO. For 12TET, this
+ * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
+ * it provides an ordered MIDI-equvalent mapping.
+ */
+int to_pitch_number(Pitch p, TuningMap T);
+
 #endif

@@ -108,6 +108,7 @@ typedef struct {
     Pitch ref_pitch;
     double ref_freq;
     Map1D centmap;
+    Map1D stepmap;
 } TuningMap;
 
 /**

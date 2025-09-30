@@ -79,6 +79,24 @@ static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
 }
 
 /**
+ * Returns the highest Pitch in a passed-in array. Uses a TuningMap to determine
+ * which Pitch is higher than the others.
+ */
+Pitch pitch_highest(Pitch arr[], int len, TuningMap T);
+
+/**
+ * Returns the lowest Pitch in a passed-in array. Uses a TuningMap to determine
+ * which Pitch is lower than the others.
+ */
+Pitch pitch_lowest(Pitch arr[], int len, TuningMap T);
+
+/**
+ * Finds the nearest Pitch in an array to a given Pitch. Uses a TuningMap to
+ * determine which Pitch is closer than the others.
+ */
+Pitch pitch_nearest(Pitch p, Pitch arr[], int len, TuningMap T);
+
+/**
  * Returns a new Pitch shifted by the given interval.
  * @return
  * Pitch (p + m)
@@ -110,10 +128,5 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
                            .accidental = pitch_accidental(p),
                            .octave = pitch_octave(p)};
 }
-
-/**
- * Converts from (letter, accidental, octave) format to (whole, half)
- */
-Pitch pitch_from_standard(StandardPitch p);
 
 #endif
