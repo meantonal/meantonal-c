@@ -42,6 +42,7 @@ strip_headers < "src/pitch.c" >> "$OUT"
 strip_headers < "src/interval.c" >> "$OUT"
 strip_headers < "src/tonality.c" >> "$OUT"
 strip_headers < "src/pc_set.c" >> "$OUT"
+strip_headers < "src/map.c" >> "$OUT"
 strip_headers < "src/parse.c" >> "$OUT"
 # for src in src/*.c; do
 #     sed -E '/^#include/d' "$src" >> "$OUT"
