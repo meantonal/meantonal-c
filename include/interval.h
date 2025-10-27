@@ -128,6 +128,13 @@ static inline Interval intervals_subtract(Interval m, Interval n) {
 }
 
 /**
+ * Multiplies an Interval vector by a scalar integer.
+ */
+static inline Interval interval_times(Interval m, int x) {
+    return (Interval){.w = m.w * x, .h = m.h * x};
+}
+
+/**
  * Reduces an interval until it is smaller than an octave
  */
 static inline Interval interval_simple(Interval m) {
