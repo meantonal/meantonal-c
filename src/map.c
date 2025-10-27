@@ -8,18 +8,13 @@ TuningMap tuning_map_from_fifth(double fifth, Pitch ref_pitch,
                                 double ref_freq) {
     return (TuningMap){.ref_pitch = ref_pitch,
                        .ref_freq = ref_freq,
-                       .centmap = (Map1D){fifth, 1200},
-                       .stepmap = (Map1D){0, 0}};
+                       .centmap = (Map1D){fifth, 1200}};
 }
 
 TuningMap tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq) {
     int fifth_steps = round(log2(1.5) * edo);
     double fifth = (float)fifth_steps * 1200 / edo;
     TuningMap T = tuning_map_from_fifth(fifth, ref_pitch, ref_freq);
-
-    int whole = ((fifth_steps * 2) % edo + edo) % edo;
-    int half = ((fifth_steps * -5) % edo + edo) % edo;
-    T.stepmap = (Map1D){whole, half};
 
     return T;
 }
@@ -36,6 +31,15 @@ double to_hz(Pitch p, TuningMap T) {
     return T.ref_freq * to_ratio(interval_between(T.ref_pitch, p), T);
 }
 
-int to_pitch_number(Pitch p, TuningMap T) {
-    return (int)(T.stepmap.m0 * p.w + T.stepmap.m1 * p.h);
+Map1D step_map_from_edo(int edo) {
+    int fifth_steps = round(log2(1.5) * edo);
+    int whole = ((fifth_steps * 2) % edo + edo) % edo;
+    int half = ((fifth_steps * -5) % edo + edo) % edo;
+    return (Map1D){whole, half};
+}
+
+int to_pitch_number(Pitch p, Map1D T) { return (int)(T.m0 * p.w + T.m1 * p.h); }
+
+int pitches_compare(Pitch p, Pitch q, Map1D T) {
+    return to_pitch_number(p, T) - to_pitch_number(q, T);
 }

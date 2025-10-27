@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // -----------------------------------------
 // HEADER DECLARATIONS ---------------------
@@ -135,15 +135,9 @@ typedef struct {
     int octave;
 } StandardPitch;
 
-
-
-extern const Map1D EDO7, EDO12, EDO17, EDO19, EDO22, EDO31, EDO50, EDO53, EDO55,
-    EDO81;
 extern const Map2D WICKI_TO, WICKI_FROM, GENERATORS_TO, GENERATORS_FROM;
 
 extern const double CONCERT_C4;
-
-
 
 /**
  * Creates a Pitch vector from a specified chroma (signed distance from C in
@@ -269,8 +263,6 @@ static inline StandardPitch pitch_to_standard(Pitch p) {
                            .accidental = pitch_accidental(p),
                            .octave = pitch_octave(p)};
 }
-
-
 
 /**
  * Parses an interval name like "P5" to generate an Interval.
@@ -416,8 +408,6 @@ static inline Interval interval_simple(Interval m) {
     return m;
 }
 
-
-
 /**
  * Creates a TonalContext from a string naming the pitch class (e.g. "Ab"), and
  * a Mode (e.g. DORIAN).
@@ -474,8 +464,6 @@ Pitch snap_diatonic(Pitch p, TonalContext key);
  */
 Pitch transpose_diatonic(Pitch p, int interval, TonalContext key);
 
-
-
 /**
  * Frees the memory previously allocated by a passed in PitchClassSet.
  */
@@ -521,8 +509,6 @@ PitchClassSet pc_set_intersection(PitchClassSet a, PitchClassSet b);
  * second.
  */
 PitchClassSet pc_set_difference(PitchClassSet a, PitchClassSet b);
-
-
 
 /**
  * Maps to an integer using a 1x2 matrix.
@@ -596,13 +582,25 @@ double to_ratio(Interval m, TuningMap T);
 double to_cents(Interval m, TuningMap T);
 
 /**
+ * Creates a Map1D that can be used to produce a well-ordered integer numbering
+ * for pitches in an EDO tuning, and to compare pitches in edosteps.
+ */
+Map1D step_map_from_edo(int edo);
+
+/**
  * Returns an ordered pitch numbering for the passed Pitch as an integer.
  * Available in any EDO TuningMap created via TuningMap.fromEDO. For 12TET, this
  * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
  * it provides an ordered MIDI-equvalent mapping.
  */
-int to_pitch_number(Pitch p, TuningMap T);
+int to_pitch_number(Pitch p, Map1D T);
 
+/**
+ * Returns a positive value if p sounds above q.
+ * Returns a negative value if p sounds below q.
+ * Returns 0 if p and q are enharmonic.
+ */
+int pitches_compare(Pitch p, Pitch q, Map1D T);
 
 /**
  * Converts from (letter, accidental, octave) format to (whole, half)
@@ -707,20 +705,9 @@ static inline int axis_from_spn(char *p_str, char *q_str, MirrorAxis *out) {
 
 #ifdef MEANTONAL
 #undef MEANTONAL
-#include <stdio.h>
-#include <stdint.h>
 #include <math.h>
-
-const Map1D EDO7 = {1, 1};
-const Map1D EDO12 = {2, 1};
-const Map1D EDO17 = {3, 1};
-const Map1D EDO19 = {3, 2};
-const Map1D EDO22 = {4, 1};
-const Map1D EDO31 = {5, 3};
-const Map1D EDO50 = {5, 3};
-const Map1D EDO53 = {9, 4};
-const Map1D EDO55 = {5, 4};
-const Map1D EDO81 = {13, 8};
+#include <stdint.h>
+#include <stdio.h>
 
 const Map2D WICKI_TO = {1, -3, 0, 1};
 const Map2D WICKI_FROM = {1, 3, 0, 1};
@@ -992,7 +979,6 @@ Pitch transpose_diatonic(Pitch p, int interval, TonalContext key) {
     return snap_diatonic(transpose_real(p, (Interval){interval, 0}), key);
 }
 
-
 typedef struct tnode {
     int value;
     struct tnode *left;
@@ -1115,18 +1101,13 @@ TuningMap tuning_map_from_fifth(double fifth, Pitch ref_pitch,
                                 double ref_freq) {
     return (TuningMap){.ref_pitch = ref_pitch,
                        .ref_freq = ref_freq,
-                       .centmap = (Map1D){fifth, 1200},
-                       .stepmap = (Map1D){0, 0}};
+                       .centmap = (Map1D){fifth, 1200}};
 }
 
 TuningMap tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq) {
     int fifth_steps = round(log2(1.5) * edo);
     double fifth = (float)fifth_steps * 1200 / edo;
     TuningMap T = tuning_map_from_fifth(fifth, ref_pitch, ref_freq);
-
-    int whole = ((fifth_steps * 2) % edo + edo) % edo;
-    int half = ((fifth_steps * -5) % edo + edo) % edo;
-    T.stepmap = (Map1D){whole, half};
 
     return T;
 }
@@ -1143,8 +1124,17 @@ double to_hz(Pitch p, TuningMap T) {
     return T.ref_freq * to_ratio(interval_between(T.ref_pitch, p), T);
 }
 
-int to_pitch_number(Pitch p, TuningMap T) {
-    return (int)(T.stepmap.m0 * p.w + T.stepmap.m1 * p.h);
+Map1D step_map_from_edo(int edo) {
+    int fifth_steps = round(log2(1.5) * edo);
+    int whole = ((fifth_steps * 2) % edo + edo) % edo;
+    int half = ((fifth_steps * -5) % edo + edo) % edo;
+    return (Map1D){whole, half};
+}
+
+int to_pitch_number(Pitch p, Map1D T) { return (int)(T.m0 * p.w + T.m1 * p.h); }
+
+int pitches_compare(Pitch p, Pitch q, Map1D T) {
+    return to_pitch_number(p, T) - to_pitch_number(q, T);
 }
 
 const Pitch letters[7] = {
@@ -1529,4 +1519,3 @@ void pitch_abc(Pitch p, char *out) {
     }
 }
 #endif // MEANTONAL
-
