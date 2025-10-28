@@ -31,15 +31,9 @@ double to_hz(Pitch p, TuningMap T) {
     return T.ref_freq * to_ratio(interval_between(T.ref_pitch, p), T);
 }
 
-Map1D step_map_from_edo(int edo) {
-    int fifth_steps = round(log2(1.5) * edo);
+EDOMap create_edo_map(int edo) {
+    int fifth_steps = (int)round(log2(1.5) * edo);
     int whole = ((fifth_steps * 2) % edo + edo) % edo;
     int half = ((fifth_steps * -5) % edo + edo) % edo;
-    return (Map1D){whole, half};
-}
-
-int to_pitch_number(Pitch p, Map1D T) { return (int)(T.m0 * p.w + T.m1 * p.h); }
-
-int pitches_compare(Pitch p, Pitch q, Map1D T) {
-    return to_pitch_number(p, T) - to_pitch_number(q, T);
+    return (EDOMap){whole, half};
 }

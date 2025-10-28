@@ -112,6 +112,14 @@ typedef struct {
 } TuningMap;
 
 /**
+ * The EDOMap type is used to produce a well-ordered mapping from Pitch vectors
+ * to integers in a given EDO tuning system.
+ */
+typedef struct {
+    int m0, m1;
+} EDOMap;
+
+/**
  * This type is used with functions that invert Pitches about a fixed point.
  */
 typedef Pitch MirrorAxis;

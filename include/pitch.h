@@ -79,6 +79,25 @@ static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
 }
 
 /**
+ * Returns an ordered pitch numbering for the passed Pitch as an integer.
+ * Available in any EDO TuningMap created via create_edo_map. For 12TET, this
+ * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
+ * it provides an ordered MIDI-equvalent mapping.
+ */
+static inline int pitch_to_number(Pitch p, EDOMap T) {
+    return T.m0 * p.w + T.m1 * p.h;
+}
+
+/**
+ * Returns a positive value if p sounds above q.
+ * Returns a negative value if p sounds below q.
+ * Returns 0 if p and q are enharmonic.
+ */
+static inline int pitches_compare(Pitch p, Pitch q, EDOMap T) {
+    return pitch_to_number(p, T) - pitch_to_number(q, T);
+}
+
+/**
  * Returns the highest Pitch in a passed-in array. Uses a TuningMap to determine
  * which Pitch is higher than the others.
  */

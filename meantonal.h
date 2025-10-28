@@ -119,6 +119,14 @@ typedef struct {
 } TuningMap;
 
 /**
+ * The EDOMap type is used to produce a well-ordered mapping from Pitch vectors
+ * to integers in a given EDO tuning system.
+ */
+typedef struct {
+    int m0, m1;
+} EDOMap;
+
+/**
  * This type is used with functions that invert Pitches about a fixed point.
  */
 typedef Pitch MirrorAxis;
@@ -211,6 +219,25 @@ static inline bool pitches_equal(Pitch p, Pitch q) {
 static inline bool pitches_enharmonic(Pitch m, Pitch n, int edo) {
     return (pitch_chroma(m) % edo + edo) % edo ==
            (pitch_chroma(n) % edo + edo) % edo;
+}
+
+/**
+ * Returns an ordered pitch numbering for the passed Pitch as an integer.
+ * Available in any EDO TuningMap created via create_edo_map. For 12TET, this
+ * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
+ * it provides an ordered MIDI-equvalent mapping.
+ */
+static inline int pitch_to_number(Pitch p, EDOMap T) {
+    return T.m0 * p.w + T.m1 * p.h;
+}
+
+/**
+ * Returns a positive value if p sounds above q.
+ * Returns a negative value if p sounds below q.
+ * Returns 0 if p and q are enharmonic.
+ */
+static inline int pitches_compare(Pitch p, Pitch q, EDOMap T) {
+    return pitch_to_number(p, T) - pitch_to_number(q, T);
 }
 
 /**
@@ -585,22 +612,7 @@ double to_cents(Interval m, TuningMap T);
  * Creates a Map1D that can be used to produce a well-ordered integer numbering
  * for pitches in an EDO tuning, and to compare pitches in edosteps.
  */
-Map1D step_map_from_edo(int edo);
-
-/**
- * Returns an ordered pitch numbering for the passed Pitch as an integer.
- * Available in any EDO TuningMap created via TuningMap.fromEDO. For 12TET, this
- * will be the ordinary MIDI value for a given Pitch, but for other EDO tunings
- * it provides an ordered MIDI-equvalent mapping.
- */
-int to_pitch_number(Pitch p, Map1D T);
-
-/**
- * Returns a positive value if p sounds above q.
- * Returns a negative value if p sounds below q.
- * Returns 0 if p and q are enharmonic.
- */
-int pitches_compare(Pitch p, Pitch q, Map1D T);
+EDOMap create_edo_map(int edo);
 
 /**
  * Converts from (letter, accidental, octave) format to (whole, half)
@@ -1124,17 +1136,11 @@ double to_hz(Pitch p, TuningMap T) {
     return T.ref_freq * to_ratio(interval_between(T.ref_pitch, p), T);
 }
 
-Map1D step_map_from_edo(int edo) {
-    int fifth_steps = round(log2(1.5) * edo);
+EDOMap create_edo_map(int edo) {
+    int fifth_steps = (int)round(log2(1.5) * edo);
     int whole = ((fifth_steps * 2) % edo + edo) % edo;
     int half = ((fifth_steps * -5) % edo + edo) % edo;
-    return (Map1D){whole, half};
-}
-
-int to_pitch_number(Pitch p, Map1D T) { return (int)(T.m0 * p.w + T.m1 * p.h); }
-
-int pitches_compare(Pitch p, Pitch q, Map1D T) {
-    return to_pitch_number(p, T) - to_pitch_number(q, T);
+    return (EDOMap){whole, half};
 }
 
 const Pitch letters[7] = {
