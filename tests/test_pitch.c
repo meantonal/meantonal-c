@@ -148,7 +148,8 @@ void test_pitch_audible(void) {
     Pitch p;
     Pitch reference;
     pitch_from_spn("A4", &reference);
-    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    TuningMap T;
+    tuning_map_from_edo(12, reference, 440, &T);
 
     // A4 (440Hz): comfortably within range.
     pitch_from_spn("A4", &p);
@@ -174,7 +175,7 @@ void test_pitch_audible(void) {
 
     // The reference pitch is always audible, regardless of tuning system,
     // since to_hz(ref_pitch, T) == ref_freq by construction.
-    T = tuning_map_from_edo(31, reference, 440);
+    tuning_map_from_edo(31, reference, 440, &T);
     ASSERT_EQ(pitch_audible(reference, T), true);
 }
 
@@ -209,7 +210,8 @@ void test_pitch_highest(void) {
 
     Pitch reference;
     pitch_from_spn("A4", &reference);
-    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    TuningMap T;
+    tuning_map_from_edo(12, reference, 440, &T);
     Pitch highest = pitch_highest(arr, 10, T);
 
     ASSERT_EQ(pitches_equal(p, highest), true);
@@ -228,7 +230,8 @@ void test_pitch_lowest(void) {
 
     Pitch reference;
     pitch_from_spn("A4", &reference);
-    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    TuningMap T;
+    tuning_map_from_edo(12, reference, 440, &T);
     Pitch lowest = pitch_lowest(arr, 10, T);
 
     ASSERT_EQ(pitches_equal(p, lowest), true);
@@ -249,13 +252,14 @@ void test_pitch_nearest(void) {
 
     Pitch reference;
     pitch_from_spn("A4", &reference);
-    TuningMap T = tuning_map_from_edo(12, reference, 440);
+    TuningMap T;
+    tuning_map_from_edo(12, reference, 440, &T);
 
     Pitch nearest = pitch_nearest(p, arr, 10, T);
     ASSERT_EQ(pitches_equal(q, nearest), true);
 
     pitch_from_spn("Ex4", &q);
-    T = tuning_map_from_edo(31, reference, 440);
+    tuning_map_from_edo(31, reference, 440, &T);
     nearest = pitch_nearest(p, arr, 10, T);
     ASSERT_EQ(pitches_equal(q, nearest), true);
 }

@@ -46,15 +46,27 @@ static inline Map2D map_compose_2d_2d(Map2D A, Map2D B) {
  * Creates a TuningMap from the width of the perfect fifth in cents in the
  * target tuning system.
  * Also required a reference Pitch and frequency for that Pitch.
+ * @param out
+ * Pointer to a TuningMap to store the result.
+ * @return
+ * 0 means nothing went wrong. Returns 1 if fifth falls outside ~685.7¢ to
+ * 720¢, which cannot produce a well-defined diatonic scale.
  */
-TuningMap tuning_map_from_fifth(double fifth, Pitch ref_pitch, double ref_freq);
+int tuning_map_from_fifth(double fifth, Pitch ref_pitch, double ref_freq,
+                          TuningMap *out);
 
 /**
  * Creates a TuningMap for an EDO tuning system from the number of parts the
  * octave is to be divided into.
  * Also required a reference Pitch and frequency for that Pitch.
+ * @param out
+ * Pointer to a TuningMap to store the result.
+ * @return
+ * 0 means nothing went wrong. Returns 1 if edo's fifth falls outside
+ * ~685.7¢ to 720¢, which cannot produce a well-defined diatonic scale.
  */
-TuningMap tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq);
+int tuning_map_from_edo(int edo, Pitch ref_pitch, double ref_freq,
+                       TuningMap *out);
 
 /**
  * Returns the frequency of a Pitch when rendered in the tuning system defined
@@ -77,7 +89,12 @@ double to_cents(Interval m, TuningMap T);
 /**
  * Creates a Map1D that can be used to produce a well-ordered integer numbering
  * for pitches in an EDO tuning, and to compare pitches in edosteps.
+ * @param out
+ * Pointer to an EDOMap to store the result.
+ * @return
+ * 0 means nothing went wrong. Returns 1 if edo's fifth falls outside
+ * ~685.7¢ to 720¢, which cannot produce a well-defined diatonic scale.
  */
-EDOMap create_edo_map(int edo);
+int create_edo_map(int edo, EDOMap *out);
 
 #endif
