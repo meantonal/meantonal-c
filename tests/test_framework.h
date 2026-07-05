@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 extern int tests_run;
 extern int tests_failed;
@@ -15,6 +16,18 @@ extern int tests_failed;
         if (a != e) {                                                          \
             tests_failed++;                                                    \
             fprintf(stderr, "    ❌ FAIL: %s:%d: got %d, expected %d\n",       \
+                    __FILE__, __LINE__, a, e);                                 \
+        }                                                                      \
+    } while (0)
+
+#define ASSERT_STR_EQ(actual, expected)                                        \
+    do {                                                                       \
+        tests_run++;                                                           \
+        const char *a = (actual);                                              \
+        const char *e = (expected);                                            \
+        if (strcmp(a, e) != 0) {                                               \
+            tests_failed++;                                                    \
+            fprintf(stderr, "    ❌ FAIL: %s:%d: got \"%s\", expected \"%s\"\n", \
                     __FILE__, __LINE__, a, e);                                 \
         }                                                                      \
     } while (0)

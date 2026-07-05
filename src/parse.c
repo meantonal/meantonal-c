@@ -2,6 +2,7 @@
 #include "../include/types.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 const Pitch letters[7] = {
     {4, 1}, {5, 1}, {0, 0}, {1, 0}, {2, 0}, {2, 1}, {3, 1},
@@ -207,58 +208,79 @@ int pitch_from_abc(const char *s, Pitch *out) {
     return 0;
 }
 
-void pitch_spn(Pitch p, char *out) {
+bool pitch_spn(Pitch p, char *out) {
+    // Sized so that no individual snprintf call below can ever truncate:
+    // 1 (letter) + 11 (accidental, worst case "-2147483648b") + 11 (octave,
+    // worst case "-2147483648") + 1 (nul) = 24, with margin to spare.
+    char tmp[32];
     size_t pos = 0;
-    size_t cap = 8;
 
     char letter = pitch_letter(p) + 'A';
     int accidental = pitch_accidental(p);
     int octave = pitch_octave(p);
+    bool flagged = accidental > 4 || accidental < -4;
 
-    pos += snprintf(out + pos, cap - pos, "%c", letter);
+    pos += snprintf(tmp + pos, sizeof(tmp) - pos, "%c", letter);
 
     switch (accidental) {
     case 2:
-        pos += snprintf(out + pos, cap - pos, "x");
+        pos += snprintf(tmp + pos, sizeof(tmp) - pos, "x");
         break;
     case 1:
-        pos += snprintf(out + pos, cap - pos, "#");
+        pos += snprintf(tmp + pos, sizeof(tmp) - pos, "#");
         break;
     case 0:
         break;
     case -1:
-        pos += snprintf(out + pos, cap - pos, "b");
+        pos += snprintf(tmp + pos, sizeof(tmp) - pos, "b");
         break;
     case -2:
-        pos += snprintf(out + pos, cap - pos, "bb");
+        pos += snprintf(tmp + pos, sizeof(tmp) - pos, "bb");
         break;
     default:
         if (accidental > 0) {
-            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+            pos += snprintf(tmp + pos, sizeof(tmp) - pos, "%d#", accidental);
         } else {
-            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+            // Cast to avoid UB negating INT_MIN.
+            pos += snprintf(tmp + pos, sizeof(tmp) - pos, "%lldb",
+                             -(long long)accidental);
         }
         break;
     }
-    pos += snprintf(out + pos, cap - pos, "%d", octave);
+    pos += snprintf(tmp + pos, sizeof(tmp) - pos, "%d", octave);
+
+    if (pos >= 8) {
+        snprintf(out, 8, "ERR");
+        return true;
+    }
+
+    snprintf(out, 8, "%s", tmp);
+    return flagged;
 }
 
-void pitch_lily(Pitch p, char *out) {
-    size_t pos = 0;
+bool pitch_lily(Pitch p, char *out) {
     size_t cap = 16;
 
     char letter = pitch_letter(p) + 'a';
     int accidental = pitch_accidental(p);
-    if (accidental > 4)
-        accidental = 4;
-    if (accidental < -4)
-        accidental = -4;
     int octave = pitch_octave(p) - 3;
-    if (octave > 6)
-        octave = 6;
-    if (octave < -6)
-        octave = -6;
+    bool flagged = accidental > 4 || accidental < -4;
 
+    // "is"/"es" cost 2 chars per unit of accidental, "'"/"," cost 1 char per
+    // unit of octave. Compute the total length up front (rather than
+    // looping to find out) so a huge vector can never turn into a
+    // multi-billion-iteration loop.
+    long long accidental_mag =
+        accidental < 0 ? -(long long)accidental : accidental;
+    long long octave_mag = octave < 0 ? -(long long)octave : octave;
+    long long needed = 1 + 2 * accidental_mag + octave_mag;
+
+    if (needed + 1 > (long long)cap) {
+        snprintf(out, cap, "ERR");
+        return true;
+    }
+
+    size_t pos = 0;
     pos += snprintf(out + pos, cap - pos, "%c", letter);
     while (accidental) {
         if (accidental > 0) {
@@ -279,55 +301,67 @@ void pitch_lily(Pitch p, char *out) {
             octave++;
         }
     }
+    return flagged;
 }
 
-void pitch_helmholtz(Pitch p, char *out) {
-    size_t pos = 0;
+bool pitch_helmholtz(Pitch p, char *out) {
     size_t cap = 16;
 
     char letter = pitch_letter(p);
     int accidental = pitch_accidental(p);
-    if (accidental > 4)
-        accidental = 4;
-    if (accidental < -4)
-        accidental = -4;
+    bool flagged = accidental > 4 || accidental < -4;
 
     int octave = pitch_octave(p) - 3;
-    if (octave > 6)
-        octave = 6;
     if (octave < 0) {
         octave++;
         letter += 'A';
     } else
         letter += 'a';
-    if (octave < -6)
-        octave = -6;
 
-    pos += snprintf(out + pos, cap - pos, "%c", letter);
-
+    // The accidental is rendered as text (bounded regardless of magnitude,
+    // same as pitch_spn), but the octave is rendered as repeated '/,
+    // (linear in magnitude), so its length has to be checked before
+    // looping.
+    char accidental_str[32];
     switch (accidental) {
     case 2:
-        pos += snprintf(out + pos, cap - pos, "x");
+        snprintf(accidental_str, sizeof(accidental_str), "x");
         break;
     case 1:
-        pos += snprintf(out + pos, cap - pos, "#");
+        snprintf(accidental_str, sizeof(accidental_str), "#");
         break;
     case 0:
+        accidental_str[0] = '\0';
         break;
     case -1:
-        pos += snprintf(out + pos, cap - pos, "b");
+        snprintf(accidental_str, sizeof(accidental_str), "b");
         break;
     case -2:
-        pos += snprintf(out + pos, cap - pos, "bb");
+        snprintf(accidental_str, sizeof(accidental_str), "bb");
         break;
     default:
         if (accidental > 0) {
-            pos += snprintf(out + pos, cap - pos, "%d#", accidental);
+            snprintf(accidental_str, sizeof(accidental_str), "%d#",
+                     accidental);
         } else {
-            pos += snprintf(out + pos, cap - pos, "%db", -accidental);
+            // Cast to avoid UB negating INT_MIN.
+            snprintf(accidental_str, sizeof(accidental_str), "%lldb",
+                     -(long long)accidental);
         }
         break;
     }
+
+    long long octave_mag = octave < 0 ? -(long long)octave : octave;
+    long long needed = 1 + (long long)strlen(accidental_str) + octave_mag;
+
+    if (needed + 1 > (long long)cap) {
+        snprintf(out, cap, "ERR");
+        return true;
+    }
+
+    size_t pos = 0;
+    pos += snprintf(out + pos, cap - pos, "%c", letter);
+    pos += snprintf(out + pos, cap - pos, "%s", accidental_str);
 
     while (octave) {
         if (octave > 0) {
@@ -338,30 +372,37 @@ void pitch_helmholtz(Pitch p, char *out) {
             octave++;
         }
     }
+    return flagged;
 }
 
-void pitch_abc(Pitch p, char *out) {
-    size_t pos = 0;
+bool pitch_abc(Pitch p, char *out) {
     size_t cap = 16;
 
     char letter = pitch_letter(p);
     int accidental = pitch_accidental(p);
-    if (accidental > 4)
-        accidental = 4;
-    if (accidental < -4)
-        accidental = -4;
+    bool flagged = accidental > 4 || accidental < -4;
 
     int octave = pitch_octave(p) - 5;
-    if (octave > 6)
-        octave = 6;
     if (octave < 0) {
         octave++;
         letter += 'A';
     } else
         letter += 'a';
-    if (octave < -6)
-        octave = -6;
 
+    // Both the accidental ("^"/"_") and octave ("'"/",") are rendered as
+    // repeated characters, linear in magnitude, so the total length has to
+    // be checked before looping.
+    long long accidental_mag =
+        accidental < 0 ? -(long long)accidental : accidental;
+    long long octave_mag = octave < 0 ? -(long long)octave : octave;
+    long long needed = accidental_mag + 1 + octave_mag;
+
+    if (needed + 1 > (long long)cap) {
+        snprintf(out, cap, "ERR");
+        return true;
+    }
+
+    size_t pos = 0;
     while (accidental) {
         if (accidental > 0) {
             pos += snprintf(out + pos, cap - pos, "^");
@@ -383,4 +424,5 @@ void pitch_abc(Pitch p, char *out) {
             octave++;
         }
     }
+    return flagged;
 }

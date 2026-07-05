@@ -1,4 +1,5 @@
 #include "types.h"
+#include <stdbool.h>
 
 /**
  * Converts from (letter, accidental, octave) format to (whole, half)
@@ -45,35 +46,49 @@ int pitch_from_abc(const char *s, Pitch *out);
  * Returns the SPN name of a Pitch as a string.
  * You must pass a char buf[8] to store the result, which is returned via an
  * out-param.
+ * @return
+ * true if the Pitch is more than a quadruple sharp/flat away from a natural,
+ * which usually indicates a logic error upstream, or if the name would not
+ * fit in 8 characters at all, in which case "ERR" is written to out instead.
+ * false otherwise.
  */
-void pitch_spn(Pitch p, char *out);
+bool pitch_spn(Pitch p, char *out);
 
 /**
  * Returns the LilyPond note name of a Pitch as a string.
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
- * Will truncate anything requiring accidentals more remote than quadruple
- * sharps/flats, or requiring more than 6 's or ,s to print.
+ * @return
+ * true if the Pitch is more than a quadruple sharp/flat away from a natural,
+ * which usually indicates a logic error upstream, or if the name would not
+ * fit in 16 characters at all, in which case "ERR" is written to out instead.
+ * false otherwise.
  */
-void pitch_lily(Pitch p, char *out);
+bool pitch_lily(Pitch p, char *out);
 
 /**
  * Returns the Helmholtz note name of a Pitch as a string.
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
- * Will truncate anything requiring accidentals more remote than quadruple
- * sharps/flats, or requiring more than 6 's or ,s to print.
+ * @return
+ * true if the Pitch is more than a quadruple sharp/flat away from a natural,
+ * which usually indicates a logic error upstream, or if the name would not
+ * fit in 16 characters at all, in which case "ERR" is written to out instead.
+ * false otherwise.
  */
-void pitch_helmholtz(Pitch p, char *out);
+bool pitch_helmholtz(Pitch p, char *out);
 
 /**
  * Returns the ABC note name of a Pitch as a string.
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
- * Will truncate anything requiring accidentals more remote than quadruple
- * sharps/flats, or requiring more than 6 's or ,s to print.
+ * @return
+ * true if the Pitch is more than a quadruple sharp/flat away from a natural,
+ * which usually indicates a logic error upstream, or if the name would not
+ * fit in 16 characters at all, in which case "ERR" is written to out instead.
+ * false otherwise.
  */
-void pitch_abc(Pitch p, char *out);
+bool pitch_abc(Pitch p, char *out);
 
 /**
  * Creates a MirrorAxis about which to invert Pitch vectors from two input SPN
