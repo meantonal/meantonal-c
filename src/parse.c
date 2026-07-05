@@ -264,16 +264,19 @@ bool pitch_lily(Pitch p, char *out) {
     char letter = pitch_letter(p) + 'a';
     int accidental = pitch_accidental(p);
     int octave = pitch_octave(p) - 3;
-    bool flagged = accidental > 4 || accidental < -4;
 
-    // "is"/"es" cost 2 chars per unit of accidental, "'"/"," cost 1 char per
-    // unit of octave. Compute the total length up front (rather than
-    // looping to find out) so a huge vector can never turn into a
-    // multi-billion-iteration loop.
-    long long accidental_mag =
-        accidental < 0 ? -(long long)accidental : accidental;
+    // LilyPond returns an error for accidentals beyond double sharps/flats
+    if (accidental > 2 || accidental < -2) {
+        snprintf(out, cap, "ERR");
+        return true;
+    }
+
+    // "'"/"," cost 1 char per unit of octave. Compute the total length up
+    // front (rather than looping to find out) so a huge vector can never
+    // turn into a multi-billion-iteration loop.
     long long octave_mag = octave < 0 ? -(long long)octave : octave;
-    long long needed = 1 + 2 * accidental_mag + octave_mag;
+    long long needed = 1 + 2 * (accidental < 0 ? -accidental : accidental) +
+                        octave_mag;
 
     if (needed + 1 > (long long)cap) {
         snprintf(out, cap, "ERR");
@@ -301,7 +304,7 @@ bool pitch_lily(Pitch p, char *out) {
             octave++;
         }
     }
-    return flagged;
+    return false;
 }
 
 bool pitch_helmholtz(Pitch p, char *out) {
@@ -380,7 +383,12 @@ bool pitch_abc(Pitch p, char *out) {
 
     char letter = pitch_letter(p);
     int accidental = pitch_accidental(p);
-    bool flagged = accidental > 4 || accidental < -4;
+
+    // ABC notation has no symbol beyond a double sharp/flat (^^ / __)
+    if (accidental > 2 || accidental < -2) {
+        snprintf(out, cap, "ERR");
+        return true;
+    }
 
     int octave = pitch_octave(p) - 5;
     if (octave < 0) {
@@ -389,11 +397,9 @@ bool pitch_abc(Pitch p, char *out) {
     } else
         letter += 'a';
 
-    // Both the accidental ("^"/"_") and octave ("'"/",") are rendered as
-    // repeated characters, linear in magnitude, so the total length has to
-    // be checked before looping.
-    long long accidental_mag =
-        accidental < 0 ? -(long long)accidental : accidental;
+    // The octave ("'"/",") is rendered as repeated characters, linear in
+    // magnitude, so its length has to be checked before looping.
+    long long accidental_mag = accidental < 0 ? -accidental : accidental;
     long long octave_mag = octave < 0 ? -(long long)octave : octave;
     long long needed = accidental_mag + 1 + octave_mag;
 
@@ -424,5 +430,5 @@ bool pitch_abc(Pitch p, char *out) {
             octave++;
         }
     }
-    return flagged;
+    return false;
 }

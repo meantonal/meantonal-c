@@ -214,42 +214,41 @@ void test_pitch_lily(void) {
     pitch_from_lily("c", &p);
     base = p;
 
+    // LilyPond has no symbol beyond a double sharp/flat, so anything more
+    // remote than that is rejected rather than rendered.
     p = base;
-    p.w += 4;
-    p.h -= 4;
-    build_repeated(reps, sizeof(reps), "is", 4);
+    p.w += 2;
+    p.h -= 2;
+    build_repeated(reps, sizeof(reps), "is", 2);
     snprintf(expected, sizeof(expected), "c%s", reps);
     flagged = pitch_lily(p, buf);
     ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, false); // exactly quadruple sharp: not flagged
+    ASSERT_EQ(flagged, false); // exactly double sharp: renders fine
 
     p = base;
-    p.w += 5;
-    p.h -= 5;
-    build_repeated(reps, sizeof(reps), "is", 5);
+    p.w += 3;
+    p.h -= 3;
+    flagged = pitch_lily(p, buf);
+    ASSERT_STR_EQ(buf, "ERR");
+    ASSERT_EQ(flagged, true); // beyond double sharp: not representable
+
+    p = base;
+    p.w -= 2;
+    p.h += 2;
+    build_repeated(reps, sizeof(reps), "es", 2);
     snprintf(expected, sizeof(expected), "c%s", reps);
     flagged = pitch_lily(p, buf);
     ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, true); // beyond quadruple: flagged, still rendered
+    ASSERT_EQ(flagged, false);
 
     p = base;
-    p.w -= 5;
-    p.h += 5;
-    build_repeated(reps, sizeof(reps), "es", 5);
-    snprintf(expected, sizeof(expected), "c%s", reps);
-    flagged = pitch_lily(p, buf);
-    ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, true);
-
-    // One "is" past what 16 bytes can hold: falls back to "ERR".
-    p = base;
-    p.w += 8;
-    p.h -= 8;
+    p.w -= 3;
+    p.h += 3;
     flagged = pitch_lily(p, buf);
     ASSERT_STR_EQ(buf, "ERR");
     ASSERT_EQ(flagged, true);
 
-    // An absurdly large accidental must still just overflow immediately,
+    // An absurdly large accidental must still just be rejected immediately,
     // not hang trying to build a hundred-million-character string.
     p = base;
     p.w += 100000000;
@@ -259,9 +258,8 @@ void test_pitch_lily(void) {
     ASSERT_EQ(flagged, true);
 
     // Octave ticks alone can also overflow the buffer, independent of the
-    // accidental-based flag (which stays false here since the accidental is
-    // untouched). Adding (5, 2) transposes up an octave without changing
-    // the accidental.
+    // accidental cap (the accidental stays untouched here). Adding (5, 2)
+    // transposes up an octave without changing the accidental.
     p = base;
     p.w += 5 * 14;
     p.h += 2 * 14;
@@ -422,42 +420,42 @@ void test_pitch_abc(void) {
     pitch_from_abc("c", &p);
     base = p;
 
+    // ABC notation has no symbol beyond a double sharp/flat (^^ / __), so
+    // anything more remote than that is rejected rather than rendered.
     p = base;
-    p.w += 4;
-    p.h -= 4;
-    build_repeated(reps, sizeof(reps), "^", 4);
+    p.w += 2;
+    p.h -= 2;
+    build_repeated(reps, sizeof(reps), "^", 2);
     snprintf(expected, sizeof(expected), "%sc", reps);
     flagged = pitch_abc(p, buf);
     ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, false); // exactly quadruple sharp: not flagged
+    ASSERT_EQ(flagged, false); // exactly double sharp: renders fine
 
     p = base;
-    p.w += 5;
-    p.h -= 5;
-    build_repeated(reps, sizeof(reps), "^", 5);
+    p.w += 3;
+    p.h -= 3;
+    flagged = pitch_abc(p, buf);
+    ASSERT_STR_EQ(buf, "ERR");
+    ASSERT_EQ(flagged, true); // beyond double sharp: not representable
+
+    p = base;
+    p.w -= 2;
+    p.h += 2;
+    build_repeated(reps, sizeof(reps), "_", 2);
     snprintf(expected, sizeof(expected), "%sc", reps);
     flagged = pitch_abc(p, buf);
     ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, true); // beyond quadruple: flagged, still rendered
+    ASSERT_EQ(flagged, false);
 
     p = base;
-    p.w -= 5;
-    p.h += 5;
-    build_repeated(reps, sizeof(reps), "_", 5);
-    snprintf(expected, sizeof(expected), "%sc", reps);
-    flagged = pitch_abc(p, buf);
-    ASSERT_STR_EQ(buf, expected);
-    ASSERT_EQ(flagged, true);
-
-    // Both the accidental and octave are rendered as repeated characters
-    // in ABC notation, so either can overflow the buffer on its own.
-    p = base;
-    p.w += 15;
-    p.h -= 15;
+    p.w -= 3;
+    p.h += 3;
     flagged = pitch_abc(p, buf);
     ASSERT_STR_EQ(buf, "ERR");
     ASSERT_EQ(flagged, true);
 
+    // An absurdly large accidental must still just be rejected immediately,
+    // not hang trying to build a hundred-million-character string.
     p = base;
     p.w += 100000000;
     p.h -= 100000000;
@@ -465,6 +463,9 @@ void test_pitch_abc(void) {
     ASSERT_STR_EQ(buf, "ERR");
     ASSERT_EQ(flagged, true);
 
+    // The octave is also rendered as repeated characters, so it can
+    // overflow the buffer on its own, independent of the accidental cap
+    // (the accidental stays untouched here).
     p = base;
     p.w += 5 * 14;
     p.h += 2 * 14;

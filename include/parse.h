@@ -59,10 +59,10 @@ bool pitch_spn(Pitch p, char *out);
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
  * @return
- * true if the Pitch is more than a quadruple sharp/flat away from a natural,
- * which usually indicates a logic error upstream, or if the name would not
- * fit in 16 characters at all, in which case "ERR" is written to out instead.
- * false otherwise.
+ * true if the Pitch's accidental goes beyond a double sharp/flat (LilyPond
+ * has no symbol for anything more remote), or if the name would not fit in
+ * 16 characters at all. In either case "ERR" is written to out instead.
+ * False otherwise.
  */
 bool pitch_lily(Pitch p, char *out);
 
@@ -83,10 +83,10 @@ bool pitch_helmholtz(Pitch p, char *out);
  * You must pass a char buf[16] to store the result, which is returned via an
  * out-param.
  * @return
- * true if the Pitch is more than a quadruple sharp/flat away from a natural,
- * which usually indicates a logic error upstream, or if the name would not
- * fit in 16 characters at all, in which case "ERR" is written to out instead.
- * false otherwise.
+ * true if the Pitch's accidental goes beyond a double sharp/flat (ABC
+ * notation has no symbol for anything more remote), or if the name would not
+ * fit in 16 characters at all. In either case "ERR" is written to out instead.
+ * False otherwise.
  */
 bool pitch_abc(Pitch p, char *out);
 
