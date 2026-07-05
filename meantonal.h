@@ -245,6 +245,12 @@ static inline int pitches_compare(Pitch p, Pitch q, EDOMap T) {
 }
 
 /**
+ * Returns true if p is within the approximate average range of human hearing.
+ * That is, roughly: between 20Hz - 20kHz
+ */
+bool pitch_audible(Pitch p, TuningMap T);
+
+/**
  * Returns the highest Pitch in a passed-in array. Uses a TuningMap to determine
  * which Pitch is higher than the others.
  */
@@ -770,6 +776,13 @@ Pitch pitch_from_chroma(int chroma, int octave) {
         p.h += 2;
     }
     return p;
+}
+
+bool pitch_audible(Pitch p, TuningMap T) {
+    double f = to_hz(p, T);
+    if (f < 20.0) return false;
+    if (f > 20000.0) return false;
+    return true;
 }
 
 Pitch pitch_highest(Pitch arr[], int len, TuningMap T) {

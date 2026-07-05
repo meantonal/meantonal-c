@@ -17,6 +17,13 @@ Pitch pitch_from_chroma(int chroma, int octave) {
     return p;
 }
 
+bool pitch_audible(Pitch p, TuningMap T) {
+    double f = to_hz(p, T);
+    if (f < 20.0) return false;
+    if (f > 20000.0) return false;
+    return true;
+}
+
 Pitch pitch_highest(Pitch arr[], int len, TuningMap T) {
     Pitch highest = arr[0];
     for (int i = 1; i < len; i++) {

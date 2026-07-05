@@ -144,6 +144,40 @@ void test_pitch_from_chroma(void) {
     ASSERT_EQ(p.h, 10);
 }
 
+void test_pitch_audible(void) {
+    Pitch p;
+    Pitch reference;
+    pitch_from_spn("A4", &reference);
+    TuningMap T = tuning_map_from_edo(12, reference, 440);
+
+    // A4 (440Hz): comfortably within range.
+    pitch_from_spn("A4", &p);
+    ASSERT_EQ(pitch_audible(p, T), true);
+
+    // C0 (~16.35Hz) and C-1 (~8.18Hz): below 20Hz.
+    pitch_from_spn("C0", &p);
+    ASSERT_EQ(pitch_audible(p, T), false);
+    pitch_from_spn("C-1", &p);
+    ASSERT_EQ(pitch_audible(p, T), false);
+
+    // A0 (27.5Hz): just above 20Hz.
+    pitch_from_spn("A0", &p);
+    ASSERT_EQ(pitch_audible(p, T), true);
+
+    // C10 (~16.7kHz): below 20kHz.
+    pitch_from_spn("C10", &p);
+    ASSERT_EQ(pitch_audible(p, T), true);
+
+    // C11 (~33.5kHz): above 20kHz.
+    pitch_from_spn("C11", &p);
+    ASSERT_EQ(pitch_audible(p, T), false);
+
+    // The reference pitch is always audible, regardless of tuning system,
+    // since to_hz(ref_pitch, T) == ref_freq by construction.
+    T = tuning_map_from_edo(31, reference, 440);
+    ASSERT_EQ(pitch_audible(reference, T), true);
+}
+
 void test_pitch_invert(void) {
     MirrorAxis a;
     axis_from_spn("C4", "G4", &a);
@@ -238,6 +272,7 @@ void test_pitch_functions(void) {
     RUN_TESTS(test_pitch_to_standard);
     RUN_TESTS(test_pitch_from_standard);
     RUN_TESTS(test_pitch_from_chroma);
+    RUN_TESTS(test_pitch_audible);
     RUN_TESTS(test_pitch_invert);
     RUN_TESTS(test_pitch_highest);
     RUN_TESTS(test_pitch_lowest);
