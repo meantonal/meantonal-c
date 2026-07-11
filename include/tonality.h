@@ -41,11 +41,29 @@ static inline enum Degree degree_number(Pitch p, TonalContext key) {
 enum Alteration degree_alteration(Pitch p, TonalContext key);
 
 /**
- * Returns the chroma of the diatonic version of the given degree in the given
+ * Returns the chroma (signed distance in perfect 5ths from C) of the
+ * variant of the passed-in scale degree (0-indexed so the tonic is 0)
+ * that matches the specified alteration (0 == diatonic) in the passed-in
  * TonalContext.
+ *
+ * Note: this function doesn't enforce the 17-fifths window used to define
+ * keys, and will happily produce a degree altered by 4 chromatic semitones.
  */
-static inline int degree_chroma(enum Degree degree, TonalContext key) {
-    return (degree * 2 + key.mode) % 7 - key.chroma_offset;
+static inline int degree_chroma(enum Degree degree, int alteration, TonalContext key) {
+    return (degree * 2 + key.mode) % 7 + (7 * alteration) - key.chroma_offset;
+}
+
+/**
+ * Returns a Pitch specified by its degree (0-indexed so the tonic is 0)
+ * and alteration (0 == diatonic) within a TonalContext, along with its
+ * octave number (SPN numbering).
+ *
+ * Note: this function doesn't enforce the 17-fifths window used to define
+ * keys, and will happily produce a degree altered by 4 chromatic semitones.
+ */
+static inline Pitch pitch_from_degree(enum Degree degree, int alteration, int octave, TonalContext key) {
+    int chroma = (degree * 2 + key.mode) % 7 + (7 * alteration) - key.chroma_offset;
+    return pitch_from_chroma(chroma, octave);
 }
 
 /**

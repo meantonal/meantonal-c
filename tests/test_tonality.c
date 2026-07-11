@@ -78,29 +78,50 @@ void test_degree_alteration(void) {
 void test_degree_chroma(void) {
     TonalContext k;
     context_from_str("C", MAJOR, &k);
-    ASSERT_EQ(degree_chroma(TONIC, k), 0);
-    ASSERT_EQ(degree_chroma(SUPERTONIC, k), 2);
-    ASSERT_EQ(degree_chroma(MEDIANT, k), 4);
-    ASSERT_EQ(degree_chroma(SUBDOMINANT, k), -1);
-    ASSERT_EQ(degree_chroma(DOMINANT, k), 1);
-    ASSERT_EQ(degree_chroma(SUBMEDIANT, k), 3);
-    ASSERT_EQ(degree_chroma(SUBTONIC, k), 5);
+    ASSERT_EQ(degree_chroma(TONIC, 0, k), 0);
+    ASSERT_EQ(degree_chroma(SUPERTONIC, 0, k), 2);
+    ASSERT_EQ(degree_chroma(MEDIANT, 0, k), 4);
+    ASSERT_EQ(degree_chroma(SUBDOMINANT, 0, k), -1);
+    ASSERT_EQ(degree_chroma(DOMINANT, 0, k), 1);
+    ASSERT_EQ(degree_chroma(SUBMEDIANT, 0, k), 3);
+    ASSERT_EQ(degree_chroma(SUBTONIC, 0, k), 5);
+    ASSERT_EQ(degree_chroma(TONIC, 1, k), 7);
+    ASSERT_EQ(degree_chroma(TONIC, -1, k), -7);
+    ASSERT_EQ(degree_chroma(TONIC, 3, k), 21);
     context_from_str("C", DORIAN, &k);
-    ASSERT_EQ(degree_chroma(TONIC, k), 0);
-    ASSERT_EQ(degree_chroma(SUPERTONIC, k), 2);
-    ASSERT_EQ(degree_chroma(MEDIANT, k), -3);
-    ASSERT_EQ(degree_chroma(SUBDOMINANT, k), -1);
-    ASSERT_EQ(degree_chroma(DOMINANT, k), 1);
-    ASSERT_EQ(degree_chroma(SUBMEDIANT, k), 3);
-    ASSERT_EQ(degree_chroma(SUBTONIC, k), -2);
+    ASSERT_EQ(degree_chroma(TONIC, 0, k), 0);
+    ASSERT_EQ(degree_chroma(SUPERTONIC, 0, k), 2);
+    ASSERT_EQ(degree_chroma(MEDIANT, 0, k), -3);
+    ASSERT_EQ(degree_chroma(SUBDOMINANT, 0, k), -1);
+    ASSERT_EQ(degree_chroma(DOMINANT, 0, k), 1);
+    ASSERT_EQ(degree_chroma(SUBMEDIANT, 0, k), 3);
+    ASSERT_EQ(degree_chroma(SUBTONIC, 0, k), -2);
     context_from_str("F#", PHRYGIAN, &k);
-    ASSERT_EQ(degree_chroma(TONIC, k), 6);
-    ASSERT_EQ(degree_chroma(SUPERTONIC, k), 1);
-    ASSERT_EQ(degree_chroma(MEDIANT, k), 3);
-    ASSERT_EQ(degree_chroma(SUBDOMINANT, k), 5);
-    ASSERT_EQ(degree_chroma(DOMINANT, k), 7);
-    ASSERT_EQ(degree_chroma(SUBMEDIANT, k), 2);
-    ASSERT_EQ(degree_chroma(SUBTONIC, k), 4);
+    ASSERT_EQ(degree_chroma(TONIC, 0, k), 6);
+    ASSERT_EQ(degree_chroma(SUPERTONIC, 0, k), 1);
+    ASSERT_EQ(degree_chroma(MEDIANT, 0, k), 3);
+    ASSERT_EQ(degree_chroma(SUBDOMINANT, 0, k), 5);
+    ASSERT_EQ(degree_chroma(DOMINANT, 0, k), 7);
+    ASSERT_EQ(degree_chroma(SUBMEDIANT, 0, k), 2);
+    ASSERT_EQ(degree_chroma(SUBTONIC, 0, k), 4);
+}
+
+void test_pitch_from_degree(void) {
+    TonalContext k;
+    context_from_str("C", MAJOR, &k);
+    Pitch p = pitch_from_degree(TONIC, 0, 4, k);
+    ASSERT_EQ(pitch_letter(p) + 'a', 'c');
+    ASSERT_EQ(pitch_accidental(p), 0);
+    ASSERT_EQ(pitch_octave(p), 4);
+    p = pitch_from_degree(SUPERTONIC, 1, 3, k);
+    ASSERT_EQ(pitch_letter(p) + 'a', 'd');
+    ASSERT_EQ(pitch_accidental(p), 1);
+    ASSERT_EQ(pitch_octave(p), 3);
+    context_from_str("F#", PHRYGIAN, &k);
+    p = pitch_from_degree(SUBDOMINANT, -1, 0, k);
+    ASSERT_EQ(pitch_letter(p) + 'a', 'b');
+    ASSERT_EQ(pitch_accidental(p), -1);
+    ASSERT_EQ(pitch_octave(p), 0);
 }
 
 void test_snap_diatonic(void) {
@@ -139,6 +160,7 @@ void test_tonality_functions(void) {
     RUN_TESTS(test_degree_number);
     RUN_TESTS(test_degree_alteration);
     RUN_TESTS(test_degree_chroma);
+    RUN_TESTS(test_pitch_from_degree);
     RUN_TESTS(test_snap_diatonic);
     RUN_TESTS(test_transpose_diatonic);
 }
