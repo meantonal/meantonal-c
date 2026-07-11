@@ -50,6 +50,13 @@ static inline bool interval_diatonic(Interval m) {
 }
 
 /**
+ * Returns true if the Interval can occur tonally, including via chromaticism.
+ */
+static inline bool interval_tonal(Interval m) {
+    return abs(interval_chroma(m)) < 17;
+}
+
+/**
  * Check whether two intervals are the same.
  * Enharmonic intervals are not considered the same, use interval_enharmonic().
  */
