@@ -24,6 +24,18 @@ int pitch_from_spn(const char *s, Pitch *out);
  */
 int pitch_from_lily(const char *s, Pitch *out);
 
+typedef struct LilyParseContext {
+    Pitch previous;
+} LilyParseContext;
+
+LilyParseContext lily_parse_context_init(Pitch p);
+
+int pitch_from_relative_lily(
+    LilyParseContext *ctx,
+    const char *s,
+    Pitch *out
+);
+
 /**
  * Parses a Helmholtz pitch name to generate a pitch.
  * @param out

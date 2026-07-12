@@ -58,6 +58,72 @@ void test_pitch_from_lily(void) {
     ASSERT_EQ(p.h, 12);
 }
 
+void test_pitch_from_relative_lily(void) {
+    Pitch p, out;
+    LilyParseContext ctx;
+
+    // The context has to be seeded from an absolute Pitch (as parsed by any
+    // of the other pitch_from_* functions) before it can be used.
+    pitch_from_lily("c'", &p);
+    ctx = lily_parse_context_init(p);
+
+    // With no octave marks, the letter is placed in whichever octave is
+    // diatonically closest to ctx->previous.
+    // e is a third above c', not a sixth below, so it goes up.
+    pitch_from_relative_lily(&ctx, "e", &out);
+    ASSERT_EQ(out.w, 27);
+    ASSERT_EQ(out.h, 10);
+
+    // g is a fourth below c', not a fifth above, so it goes down.
+    ctx.previous = p;
+    pitch_from_relative_lily(&ctx, "g", &out);
+    ASSERT_EQ(out.w, 23);
+    ASSERT_EQ(out.h, 9);
+
+    // Accidentals are resolved before the nearest octave is chosen.
+    ctx.previous = p;
+    pitch_from_relative_lily(&ctx, "cis", &out);
+    ASSERT_EQ(out.w, 26);
+    ASSERT_EQ(out.h, 9);
+
+    // Explicit octave marks then shift further, relative to whichever
+    // octave was picked as nearest.
+    ctx.previous = p;
+    pitch_from_relative_lily(&ctx, "e'", &out);
+    ASSERT_EQ(out.w, 32);
+    ASSERT_EQ(out.h, 12);
+
+    ctx.previous = p;
+    pitch_from_relative_lily(&ctx, "e,", &out);
+    ASSERT_EQ(out.w, 22);
+    ASSERT_EQ(out.h, 8);
+
+    ctx.previous = p;
+    pitch_from_relative_lily(&ctx, "e", &out); // up a third from c'
+    ASSERT_EQ(out.w, 27);
+    ASSERT_EQ(out.h, 10);
+
+    pitch_from_relative_lily(&ctx, "g", &out); // up a third from e
+    ASSERT_EQ(out.w, 28);
+    ASSERT_EQ(out.h, 11);
+
+    pitch_from_relative_lily(&ctx, "c,", &out); // down from the c above g
+    ASSERT_EQ(out.w, 25);
+    ASSERT_EQ(out.h, 10);
+
+    pitch_from_relative_lily(&ctx, "e,", &out);
+    ASSERT_EQ(out.w, 22);
+    ASSERT_EQ(out.h, 8);
+
+    pitch_from_relative_lily(&ctx, "g,", &out);
+    ASSERT_EQ(out.w, 18);
+    ASSERT_EQ(out.h, 7);
+
+    pitch_from_relative_lily(&ctx, "c'", &out); // back to middle c
+    ASSERT_EQ(out.w, 25);
+    ASSERT_EQ(out.h, 10);
+}
+
 void test_pitch_from_helmholtz(void) {
     Pitch p;
     pitch_from_helmholtz("C,,,", &p);
@@ -493,6 +559,7 @@ void test_pitch_abc(void) {
 void test_parse_functions(void) {
     RUN_TESTS(test_pitch_from_spn);
     RUN_TESTS(test_pitch_from_lily);
+    RUN_TESTS(test_pitch_from_relative_lily);
     RUN_TESTS(test_pitch_from_helmholtz);
     RUN_TESTS(test_pitch_from_abc);
     RUN_TESTS(test_pitch_spn);

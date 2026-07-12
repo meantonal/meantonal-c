@@ -698,6 +698,18 @@ int pitch_from_spn(const char *s, Pitch *out);
  */
 int pitch_from_lily(const char *s, Pitch *out);
 
+typedef struct LilyParseContext {
+    Pitch previous;
+} LilyParseContext;
+
+LilyParseContext lily_parse_context_init(Pitch p);
+
+int pitch_from_relative_lily(
+    LilyParseContext *ctx,
+    const char *s,
+    Pitch *out
+);
+
 /**
  * Parses a Helmholtz pitch name to generate a pitch.
  * @param out
@@ -1337,6 +1349,72 @@ int pitch_from_lily(const char *s, Pitch *out) {
     }
     out->w += oct * 5;
     out->h += oct * 2;
+
+    return 0;
+}
+
+LilyParseContext lily_parse_context_init(Pitch p) {
+    return (LilyParseContext){
+        .previous = p
+    };
+}
+
+int pitch_from_relative_lily(
+    LilyParseContext *ctx,
+    const char *s,
+    Pitch *out
+) {
+    const char *p = s;
+
+    int letter;
+    if (*p >= 'a' && *p <= 'g') {
+        letter = *p++ - 'a';
+    } else {
+        return 1; // invalid
+    }
+    out->w = letters[letter].w;
+    out->h = letters[letter].h;
+
+    int acc = 0;
+    while (*p == 'i' || *p == 'e') {
+        switch (*p) {
+        case 'i':
+            acc++;
+            break;
+        case 'e':
+            acc--;
+            break;
+        }
+        p += 2;
+    }
+    out->w += acc;
+    out->h -= acc;
+
+    while (steps_between((Pitch){out->w, out->h}, ctx->previous) > 3) {
+        out->w += 5;
+        out->h += 2;
+    }
+    while (steps_between((Pitch){out->w, out->h}, ctx->previous) < -3) {
+        out->w -= 5;
+        out->h -= 2;
+    }
+
+    int oct = 0;
+    while (*p == '\'' || *p == ',') {
+        switch (*p) {
+        case '\'':
+            oct++;
+            break;
+        case ',':
+            oct--;
+            break;
+        }
+        p++;
+    }
+    out->w += oct * 5;
+    out->h += oct * 2;
+
+    ctx->previous = *out;
 
     return 0;
 }
